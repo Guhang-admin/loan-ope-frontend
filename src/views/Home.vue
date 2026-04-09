@@ -1,7 +1,8 @@
 <template>
   <div class="home">
     <h1>统计主页</h1>
-    <div class="stats-container">
+    <div v-if="loading" class="loading">加载中...</div>
+    <div v-else class="stats-container">
       <div class="stat-card">
         <h3>总文件数</h3>
         <p class="stat-value">{{ totalFiles }}</p>
@@ -16,20 +17,44 @@
       </div>
       <div class="stat-card">
         <h3>系统状态</h3>
-        <p class="stat-value status-ok">正常</p>
+        <p class="stat-value status-ok">{{ systemStatus }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import api from '../api/api';
+
 export default {
   name: 'Home',
   data() {
     return {
-      totalFiles: 128,
-      todayUploads: 15,
-      totalUsers: 42
+      totalFiles: 0,
+      todayUploads: 0,
+      totalUsers: 0,
+      systemStatus: '正常',
+      loading: true
+    }
+  },
+  mounted() {
+    this.fetchStats();
+  },
+  methods: {
+    fetchStats() {
+      api.getStats()
+        .then(data => {
+          this.totalFiles = data.totalFiles;
+          this.todayUploads = data.todayUploads;
+          this.totalUsers = data.totalUsers;
+          this.systemStatus = data.status;
+          this.loading = false;
+        })
+        .catch(error => {
+          console.error('获取统计数据失败:', error);
+          this.loading = false;
+          alert('获取统计数据失败，请检查网络连接');
+        });
     }
   }
 }
@@ -43,6 +68,13 @@ export default {
 h1 {
   margin-bottom: 30px;
   color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
 }
 
 .stats-container {

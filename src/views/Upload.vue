@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import api from '../api/api';
+
 export default {
   name: 'Upload',
   data() {
@@ -70,16 +72,37 @@ export default {
       this.uploadSuccess = false
       this.progress = 0
       
+      // 上传每个文件
+      const uploadPromises = this.files.map(file => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('uploader', localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).username : 'anonymous');
+        
+        return api.uploadFile(formData);
+      });
+      
       // 模拟上传进度
       const interval = setInterval(() => {
         this.progress += 10
         if (this.progress >= 100) {
           clearInterval(interval)
+        }
+      }, 300);
+      
+      Promise.all(uploadPromises)
+        .then(results => {
+          clearInterval(interval)
           this.uploading = false
           this.uploadSuccess = true
           this.files = []
-        }
-      }, 300)
+          this.progress = 100
+        })
+        .catch(error => {
+          clearInterval(interval)
+          this.uploading = false
+          console.error('文件上传失败:', error)
+          alert('文件上传失败，请检查网络连接')
+        });
     }
   }
 }

@@ -1,7 +1,8 @@
 <template>
   <div class="credit-score">
     <h1>用户信誉度</h1>
-    <div class="user-list">
+    <div v-if="loading" class="loading">加载中...</div>
+    <div v-else class="user-list">
       <h2>用户列表</h2>
       <table>
         <thead>
@@ -57,18 +58,28 @@
           <label>信誉评价:</label>
           <span>{{ getCreditEvaluation(selectedUser.creditScore) }}</span>
         </div>
+        <div class="detail-item">
+          <label>调整信誉分数:</label>
+          <input type="number" v-model="newCreditScore" :min="0" :max="1000" step="1">
+          <button class="update-btn" @click="updateCreditScore" :disabled="updating">更新</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import api from '../api/api';
+
 export default {
   name: 'CreditScore',
   data() {
     return {
       users: [],
-      selectedUser: null
+      selectedUser: null,
+      loading: true,
+      updating: false,
+      newCreditScore: 0
     }
   },
   mounted() {
@@ -76,39 +87,51 @@ export default {
   },
   methods: {
     loadUsers() {
-      // 模拟API调用
-      setTimeout(() => {
-        this.users = [
-          {
-            id: 1,
-            username: 'admin',
-            name: '管理员',
-            role: 'ADMIN',
-            creditScore: 900
-          },
-          {
-            id: 2,
-            username: 'user1',
-            name: '用户1',
-            role: 'USER',
-            creditScore: 850
-          },
-          {
-            id: 3,
-            username: 'user2',
-            name: '用户2',
-            role: 'USER',
-            creditScore: 780
+      api.getUsers()
+        .then(data => {
+          this.users = data;
+          this.loading = false;
+          if (this.users.length > 0) {
+            this.selectedUser = this.users[0];
+            this.newCreditScore = this.selectedUser.creditScore;
           }
-        ];
-        // 默认选择第一个用户
-        if (this.users.length > 0) {
-          this.selectedUser = this.users[0];
-        }
-      }, 500);
+        })
+        .catch(error => {
+          console.error('获取用户列表失败:', error);
+          this.loading = false;
+          alert('获取用户列表失败，请检查网络连接');
+        });
     },
     selectUser(user) {
       this.selectedUser = user;
+      this.newCreditScore = user.creditScore;
+    },
+    updateCreditScore() {
+      if (!this.selectedUser || this.newCreditScore === '') {
+        alert('请输入有效的信誉分数');
+        return;
+      }
+      
+      const score = parseInt(this.newCreditScore);
+      if (score < 0 || score > 1000) {
+        alert('信誉分数必须在0-1000之间');
+        return;
+      }
+      
+      this.updating = true;
+      
+      api.updateCreditScore(this.selectedUser.id, score)
+      .then(data => {
+        this.selectedUser = data;
+        this.updating = false;
+        alert('信誉分数更新成功');
+        this.loadUsers();
+      })
+      .catch(error => {
+        console.error('更新信誉分数失败:', error);
+        this.updating = false;
+        alert('更新信誉分数失败，请检查网络连接');
+      });
     },
     getRating(score) {
       if (score >= 900) return 'AAA';
@@ -151,6 +174,13 @@ h1 {
 h2 {
   margin-bottom: 20px;
   color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
 }
 
 .user-list {
@@ -225,6 +255,7 @@ tr:hover {
 .detail-item {
   display: flex;
   margin-bottom: 15px;
+  align-items: center;
 }
 
 .detail-item label {
@@ -242,5 +273,33 @@ tr:hover {
   font-size: 18px;
   font-weight: bold;
   color: #1890ff;
+}
+
+.detail-item input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.update-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.update-btn:hover {
+  background-color: #45a049;
+}
+
+.update-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>

@@ -3,9 +3,10 @@
     <h1>还款记录</h1>
     <div class="search-section">
       <input type="number" v-model="loanId" placeholder="请输入贷款ID">
-      <button class="search-btn" @click="searchRecords">查询</button>
+      <button class="search-btn" @click="searchRecords" :disabled="loading">查询</button>
     </div>
-    <div v-if="records.length > 0" class="record-list">
+    <div v-if="loading" class="loading">加载中...</div>
+    <div v-else-if="records.length > 0" class="record-list">
       <table>
         <thead>
           <tr>
@@ -34,12 +35,15 @@
 </template>
 
 <script>
+import api from '../api/api';
+
 export default {
   name: 'RepaymentRecord',
   data() {
     return {
       loanId: 1,
-      records: []
+      records: [],
+      loading: false
     }
   },
   mounted() {
@@ -52,27 +56,18 @@ export default {
         return;
       }
       
-      // 模拟API调用
-      setTimeout(() => {
-        this.records = [
-          {
-            id: 1,
-            loanId: this.loanId,
-            planId: 1,
-            paymentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            amount: 870.83,
-            paymentMethod: '银行卡'
-          },
-          {
-            id: 2,
-            loanId: this.loanId,
-            planId: 2,
-            paymentDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-            amount: 867.71,
-            paymentMethod: '支付宝'
-          }
-        ];
-      }, 500);
+      this.loading = true;
+      
+      api.getLoanRepaymentRecords(this.loanId)
+        .then(data => {
+          this.records = data;
+          this.loading = false;
+        })
+        .catch(error => {
+          console.error('获取还款记录失败:', error);
+          this.loading = false;
+          alert('获取还款记录失败，请检查网络连接');
+        });
     },
     formatDate(date) {
       if (typeof date === 'string') {
@@ -120,6 +115,18 @@ h1 {
 
 .search-btn:hover {
   background-color: #2980b9;
+}
+
+.search-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
 }
 
 .record-list {

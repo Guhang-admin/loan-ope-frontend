@@ -3,9 +3,10 @@
     <h1>还款计划</h1>
     <div class="search-section">
       <input type="number" v-model="loanId" placeholder="请输入贷款ID">
-      <button class="search-btn" @click="searchPlans">查询</button>
+      <button class="search-btn" @click="searchPlans" :disabled="loading">查询</button>
     </div>
-    <div v-if="plans.length > 0" class="plan-list">
+    <div v-if="loading" class="loading">加载中...</div>
+    <div v-else-if="plans.length > 0" class="plan-list">
       <table>
         <thead>
           <tr>
@@ -27,7 +28,7 @@
             <td>{{ plan.totalAmount.toFixed(2) }}</td>
             <td :class="['status', plan.status]">{{ plan.status }}</td>
             <td>
-              <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)">还款</button>
+              <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)" :disabled="paying">还款</button>
               <span v-else>{{ plan.status }}</span>
             </td>
           </tr>
@@ -41,12 +42,16 @@
 </template>
 
 <script>
+import api from '../api/api';
+
 export default {
   name: 'RepaymentPlan',
   data() {
     return {
       loanId: 1,
-      plans: []
+      plans: [],
+      loading: false,
+      paying: false
     }
   },
   mounted() {
@@ -59,51 +64,33 @@ export default {
         return;
       }
       
-      // 模拟API调用
-      setTimeout(() => {
-        this.plans = [
-          {
-            id: 1,
-            loanId: this.loanId,
-            installmentNumber: 1,
-            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            principal: 833.33,
-            interest: 37.50,
-            totalAmount: 870.83,
-            status: '未还款'
-          },
-          {
-            id: 2,
-            loanId: this.loanId,
-            installmentNumber: 2,
-            dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-            principal: 833.33,
-            interest: 34.38,
-            totalAmount: 867.71,
-            status: '未还款'
-          },
-          {
-            id: 3,
-            loanId: this.loanId,
-            installmentNumber: 3,
-            dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-            principal: 833.33,
-            interest: 31.25,
-            totalAmount: 864.58,
-            status: '未还款'
-          }
-        ];
-      }, 500);
+      this.loading = true;
+      
+      api.getLoanRepaymentPlans(this.loanId)
+        .then(data => {
+          this.plans = data;
+          this.loading = false;
+        })
+        .catch(error => {
+          console.error('获取还款计划失败:', error);
+          this.loading = false;
+          alert('获取还款计划失败，请检查网络连接');
+        });
     },
     makePayment(planId) {
-      // 模拟还款操作
-      setTimeout(() => {
-        const plan = this.plans.find(p => p.id === planId);
-        if (plan) {
-          plan.status = '已还款';
-          alert('还款成功');
-        }
-      }, 500);
+      this.paying = true;
+      
+      api.makePayment(planId)
+      .then(data => {
+        this.paying = false;
+        alert('还款成功');
+        this.searchPlans();
+      })
+      .catch(error => {
+        console.error('还款失败:', error);
+        this.paying = false;
+        alert('还款失败，请检查网络连接');
+      });
     },
     formatDate(date) {
       if (typeof date === 'string') {
@@ -151,6 +138,18 @@ h1 {
 
 .search-btn:hover {
   background-color: #2980b9;
+}
+
+.search-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
 }
 
 .plan-list {
@@ -215,6 +214,11 @@ tr:hover {
 
 .pay-btn:hover {
   background-color: #45a049;
+}
+
+.pay-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .no-data {
