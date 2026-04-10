@@ -28,7 +28,7 @@
             <td>{{ plan.totalAmount.toFixed(2) }}</td>
             <td :class="['status', plan.status]">{{ plan.status }}</td>
             <td>
-              <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)" :disabled="paying">还款</button>
+              <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)" :disabled="paying || !isPaymentAllowed(plan.dueDate)">还款</button>
               <span v-else>{{ plan.status }}</span>
             </td>
           </tr>
@@ -91,6 +91,13 @@ export default {
         this.paying = false;
         alert('还款失败，请检查网络连接');
       });
+    },
+    isPaymentAllowed(dueDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(dueDate);
+      due.setHours(0, 0, 0, 0);
+      return today >= due;
     },
     formatDate(date) {
       if (typeof date === 'string') {
