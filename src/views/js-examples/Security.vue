@@ -118,9 +118,11 @@
 
 <script>
 import api from '../../api/api'
+import { exampleMixin, exampleStyles } from '../../utils/exampleMixin'
 
 export default {
   name: 'SecurityExample',
+  mixins: [exampleMixin],
   data() {
     return {
       result: null,
@@ -139,9 +141,6 @@ function secureXss() {
     }
   },
   methods: {
-    goBack() {
-      this.$router.push('/')
-    },
     log(message, type = 'info') {
       const timestamp = new Date().toLocaleTimeString()
       const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`
