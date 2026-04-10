@@ -1,9 +1,9 @@
 <template>
   <div class="dom-container">
     <div class="header">
-      <button class="back-btn" @click="goBack">
+      <button class="back-btn" @click="goBackToJSExamples">
         <i class="back-icon">🏠</i>
-        <span>返回主页面</span>
+        <span>返回案例列表</span>
       </button>
       <h1>第3期：DOM 操作性能问题</h1>
     </div>
@@ -76,11 +76,11 @@
           </div>
 
           <div class="code-content" v-show="activeTab === 'error'">
-            <pre><code>{{ errorCode }}</code></pre>
+            <pre><code v-html="highlightCode(errorCode)"></code></pre>
           </div>
 
           <div class="code-content" v-show="activeTab === 'fixed'">
-            <pre><code>{{ fixedCode }}</code></pre>
+            <pre><code v-html="highlightCode(fixedCode)"></code></pre>
           </div>
         </div>
       </div>

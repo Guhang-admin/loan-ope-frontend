@@ -89,6 +89,62 @@ export const exampleMixin = {
     // 生成唯一ID
     generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substr(2)
+    },
+    
+    // 代码语法高亮
+    highlightCode(code, language = 'javascript') {
+      if (!code) return '';
+      
+      // 替换特殊字符
+      code = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      if (language === 'java') {
+        // Java 代码高亮
+        // 高亮注释
+        code = code.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="code-comment">$1</span>');
+        
+        // 高亮字符串
+        code = code.replace(/(["'])(.*?)\1/g, '<span class="code-string">$&</span>');
+        
+        // 高亮注解
+        code = code.replace(/(@\w+)/g, '<span class="code-annotation">$1</span>');
+        
+        // 高亮关键字
+        const javaKeywords = ['public', 'private', 'protected', 'class', 'void', 'int', 'long', 'String', 'try', 'catch', 'finally', 'return', 'if', 'else', 'new', 'null', 'throws', 'extends', 'super', 'synchronized', 'boolean'];
+        const keywordRegex = new RegExp('\\b(' + javaKeywords.join('|') + ')\\b', 'g');
+        code = code.replace(keywordRegex, '<span class="code-keyword">$1</span>');
+        
+        // 高亮类型
+        const javaTypes = ['List', 'ArrayList', 'Map', 'WeakHashMap', 'WeakReference', 'byte', 'EventListener', 'EventBus', 'User', 'Connection', 'PreparedStatement', 'ResultSet', 'SQLException', 'BigDecimal', 'Long', 'Exception', 'IllegalArgumentException', 'RuntimeException', 'AtomicInteger', 'Object', 'Thread', 'InterruptedException', 'ReentrantLock', 'TimeUnit'];
+        const typeRegex = new RegExp('\\b(' + javaTypes.join('|') + ')\\b', 'g');
+        code = code.replace(typeRegex, '<span class="code-type">$1</span>');
+        
+        // 高亮数字
+        code = code.replace(/\b\d+\b/g, '<span class="code-number">$&</span>');
+      } else {
+        // JavaScript 代码高亮
+        // 高亮注释
+        code = code.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="code-comment">$1</span>');
+        
+        // 高亮字符串
+        code = code.replace(/(["'])(.*?)\1/g, '<span class="code-string">$&</span>');
+        
+        // 高亮关键字
+        const jsKeywords = ['function', 'const', 'let', 'var', 'if', 'else', 'return', 'async', 'await', 'try', 'catch', 'finally', 'new', 'Promise', 'setTimeout', 'console', 'log', 'error', 'document', 'createElement', 'getElementById', 'appendChild', 'textContent', 'addEventListener', 'querySelectorAll', 'forEach', 'createDocumentFragment', 'className', 'cssText', 'classList', 'contains', 'target', 'apply', 'arguments', 'clearTimeout', 'removeEventListener', 'remove', 'setInterval', 'clearInterval', 'window', 'null', 'undefined', 'innerHTML'];
+        const keywordRegex = new RegExp('\\b(' + jsKeywords.join('|') + ')\\b', 'g');
+        code = code.replace(keywordRegex, '<span class="code-keyword">$1</span>');
+        
+        // 高亮数字
+        code = code.replace(/\b\d+\b/g, '<span class="code-number">$&</span>');
+        
+        // 高亮函数名
+        code = code.replace(/function\s+(\w+)/g, 'function <span class="code-function">$1</span>');
+        
+        // 高亮方法调用
+        code = code.replace(/(\w+)\(/g, '<span class="code-method">$1</span>(');
+      }
+      
+      return code;
     }
   }
 }

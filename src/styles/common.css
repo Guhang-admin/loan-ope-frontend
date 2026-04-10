@@ -246,14 +246,72 @@ h3 {
   overflow: auto;
 }
 
-.code-content pre,
-pre code {
+/* 代码容器样式 */
+.code-content {
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 4px;
+  overflow: hidden;
+  background: #2d2d2d;
+  color: #d4d4d4;
+}
+
+.code-content pre {
+  margin: 0;
+  background: #2d2d2d;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.code-content code {
+  display: block;
   margin: 0;
   padding: 20px;
-  background: #f8f9fa;
+  background: #2d2d2d;
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
   line-height: 1.5;
+  text-align: left;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* 代码语法高亮 */
+.code-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.code-string {
+  color: #ce9178;
+}
+
+.code-keyword {
+  color: #569cd6;
+  font-weight: bold;
+}
+
+.code-number {
+  color: #b5cea8;
+}
+
+.code-function {
+  color: #dcdcaa;
+  font-weight: bold;
+}
+
+.code-method {
+  color: #d7ba7d;
+  font-weight: bold;
+}
+
+.code-type {
+  color: #4ec9b0;
+  font-weight: bold;
+}
+
+.code-annotation {
+  color: #dcdcaa;
+  font-weight: bold;
 }
 
 /* 解决方案区域 */

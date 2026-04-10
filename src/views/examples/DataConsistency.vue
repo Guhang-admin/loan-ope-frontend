@@ -1,9 +1,9 @@
 <template>
   <div class="dataconsistency-container">
     <div class="header">
-      <button class="back-btn" @click="goBack">
+      <button class="back-btn" @click="goBackToExamples">
         <i class="back-icon">🏠</i>
-        <span>返回主页面</span>
+        <span>返回案例列表</span>
       </button>
       <h1>第2期：数据不一致 - 分布式事务和缓存一致性问题</h1>
     </div>
@@ -78,11 +78,11 @@
           </div>
 
           <div class="code-content" v-show="activeTab === 'error'">
-            <pre><code>{{ errorCode }}</code></pre>
+            <pre><code v-html="highlightCode(errorCode, 'java')"></code></pre>
           </div>
 
           <div class="code-content" v-show="activeTab === 'fixed'">
-            <pre><code>{{ fixedCode }}</code></pre>
+            <pre><code v-html="highlightCode(fixedCode, 'java')"></code></pre>
           </div>
         </div>
       </div>
