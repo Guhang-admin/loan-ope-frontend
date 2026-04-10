@@ -166,7 +166,7 @@ export default {
         {
           id: 1,
           title: '贷款',
-          image: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Z7F2CFndJ2RgJVvVoRV1wQHaEJ?w=291&h=180&c=7&r=0&o=7&pid=1.7&rm=3'
+          image: 'https://img2.baidu.com/it/u=3768499143,2537282227&fm=253&fmt=auto&app=120&f=JPEG?w=750&h=500'
         },
         {
           id: 2,
