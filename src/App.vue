@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <nav class="navbar">
-      <div class="navbar-brand">管理系统</div>
+      <div class="navbar-brand">会了么</div>
       <div class="navbar-menu">
         <router-link to="/" class="navbar-item">统计主页</router-link>
         <router-link to="/upload" class="navbar-item">文件上传</router-link>
