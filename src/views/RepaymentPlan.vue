@@ -1,51 +1,57 @@
 <template>
-  <div class="repayment-plan">
-    <h1>还款计划</h1>
-    <div class="search-section">
-      <input type="number" v-model="loanId" placeholder="请输入贷款ID">
-      <button class="search-btn" @click="searchPlans" :disabled="loading">查询</button>
+  <Layout>
+    <div class="repayment-plan">
+      <h1>还款计划</h1>
+      <div class="search-section">
+        <input type="number" v-model="loanId" placeholder="请输入贷款ID">
+        <button class="search-btn" @click="searchPlans" :disabled="loading">查询</button>
+      </div>
+      <div v-if="loading" class="loading">加载中...</div>
+      <div v-else-if="plans.length > 0" class="plan-list">
+        <table>
+          <thead>
+            <tr>
+              <th>期数</th>
+              <th>到期日期</th>
+              <th>本金</th>
+              <th>利息</th>
+              <th>总金额</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="plan in plans" :key="plan.id">
+              <td>{{ plan.installmentNumber }}</td>
+              <td>{{ formatDate(plan.dueDate) }}</td>
+              <td>{{ plan.principal.toFixed(2) }}</td>
+              <td>{{ plan.interest.toFixed(2) }}</td>
+              <td>{{ plan.totalAmount.toFixed(2) }}</td>
+              <td :class="['status', plan.status]">{{ plan.status }}</td>
+              <td>
+                <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)" :disabled="paying || !isPaymentAllowed(plan.dueDate)">还款</button>
+                <span v-else>{{ plan.status }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else class="no-data">
+        <p>暂无还款计划数据</p>
+      </div>
     </div>
-    <div v-if="loading" class="loading">加载中...</div>
-    <div v-else-if="plans.length > 0" class="plan-list">
-      <table>
-        <thead>
-          <tr>
-            <th>期数</th>
-            <th>到期日期</th>
-            <th>本金</th>
-            <th>利息</th>
-            <th>总金额</th>
-            <th>状态</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="plan in plans" :key="plan.id">
-            <td>{{ plan.installmentNumber }}</td>
-            <td>{{ formatDate(plan.dueDate) }}</td>
-            <td>{{ plan.principal.toFixed(2) }}</td>
-            <td>{{ plan.interest.toFixed(2) }}</td>
-            <td>{{ plan.totalAmount.toFixed(2) }}</td>
-            <td :class="['status', plan.status]">{{ plan.status }}</td>
-            <td>
-              <button v-if="plan.status === '未还款'" class="pay-btn" @click="makePayment(plan.id)" :disabled="paying || !isPaymentAllowed(plan.dueDate)">还款</button>
-              <span v-else>{{ plan.status }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-else class="no-data">
-      <p>暂无还款计划数据</p>
-    </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import api from '../api/api';
+import Layout from '../components/Layout.vue';
 
 export default {
   name: 'RepaymentPlan',
+  components: {
+    Layout
+  },
   data() {
     return {
       loanId: 1,

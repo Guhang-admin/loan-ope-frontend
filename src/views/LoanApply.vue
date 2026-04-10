@@ -1,68 +1,74 @@
 <template>
-  <div class="loan-apply">
-    <h1>贷款申请</h1>
-    <div class="apply-form">
-      <div class="form-group">
-        <label for="userId">用户ID</label>
-        <input type="number" id="userId" v-model="loan.userId" placeholder="请输入用户ID">
+  <Layout>
+    <div class="loan-apply">
+      <h1>贷款申请</h1>
+      <div class="apply-form">
+        <div class="form-group">
+          <label for="userId">用户ID</label>
+          <input type="number" id="userId" v-model="loan.userId" placeholder="请输入用户ID">
+        </div>
+        <div class="form-group">
+          <label for="loanAmount">贷款金额</label>
+          <input type="number" id="loanAmount" v-model="loan.loanAmount" placeholder="请输入贷款金额" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label for="interestRate">年利率(%)</label>
+          <input type="number" id="interestRate" v-model="loan.interestRate" placeholder="请输入年利率" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label for="loanTerm">贷款期限(月)</label>
+          <select id="loanTerm" v-model="loan.loanTerm">
+            <option value="3">3个月</option>
+            <option value="6">6个月</option>
+            <option value="12">12个月</option>
+            <option value="24">24个月</option>
+            <option value="36">36个月</option>
+          </select>
+        </div>
+        <button class="submit-btn" @click="submitApplication" :disabled="submitting">
+          {{ submitting ? '提交中...' : '提交申请' }}
+        </button>
       </div>
-      <div class="form-group">
-        <label for="loanAmount">贷款金额</label>
-        <input type="number" id="loanAmount" v-model="loan.loanAmount" placeholder="请输入贷款金额" step="0.01" min="0">
+      <div v-if="applicationResult" class="result">
+        <h3>申请结果</h3>
+        <div class="result-info">
+          <p>贷款ID: {{ applicationResult.id }}</p>
+          <p>贷款金额: {{ applicationResult.loanAmount }} 元</p>
+          <p>年利率: {{ applicationResult.interestRate }}%</p>
+          <p>贷款期限: {{ applicationResult.loanTerm }} 个月</p>
+          <p>申请状态: {{ applicationResult.status }}</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="interestRate">年利率(%)</label>
-        <input type="number" id="interestRate" v-model="loan.interestRate" placeholder="请输入年利率" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label for="loanTerm">贷款期限(月)</label>
-        <select id="loanTerm" v-model="loan.loanTerm">
-          <option value="3">3个月</option>
-          <option value="6">6个月</option>
-          <option value="12">12个月</option>
-          <option value="24">24个月</option>
-          <option value="36">36个月</option>
-        </select>
-      </div>
-      <button class="submit-btn" @click="submitApplication" :disabled="submitting">
-        {{ submitting ? '提交中...' : '提交申请' }}
-      </button>
-    </div>
-    <div v-if="applicationResult" class="result">
-      <h3>申请结果</h3>
-      <div class="result-info">
-        <p>贷款ID: {{ applicationResult.id }}</p>
-        <p>贷款金额: {{ applicationResult.loanAmount }} 元</p>
-        <p>年利率: {{ applicationResult.interestRate }}%</p>
-        <p>贷款期限: {{ applicationResult.loanTerm }} 个月</p>
-        <p>申请状态: {{ applicationResult.status }}</p>
-      </div>
-    </div>
-    <div class="loan-list">
-      <h2>我的贷款列表</h2>
-      <div v-if="loading" class="loading">加载中...</div>
-      <div v-else-if="loans.length === 0" class="no-data">暂无贷款记录</div>
-      <div v-else class="loan-items">
-        <div v-for="loan in loans" :key="loan.id" class="loan-item">
-          <div class="loan-info">
-            <h3>贷款ID: {{ loan.id }}</h3>
-            <p>贷款金额: {{ loan.loanAmount }} 元</p>
-            <p>年利率: {{ loan.interestRate }}%</p>
-            <p>贷款期限: {{ loan.loanTerm }} 个月</p>
-            <p>申请日期: {{ formatDate(loan.applicationDate) }}</p>
-            <p>状态: <span :class="getStatusClass(loan.status)">{{ loan.status }}</span></p>
+      <div class="loan-list">
+        <h2>我的贷款列表</h2>
+        <div v-if="loading" class="loading">加载中...</div>
+        <div v-else-if="loans.length === 0" class="no-data">暂无贷款记录</div>
+        <div v-else class="loan-items">
+          <div v-for="loan in loans" :key="loan.id" class="loan-item">
+            <div class="loan-info">
+              <h3>贷款ID: {{ loan.id }}</h3>
+              <p>贷款金额: {{ loan.loanAmount }} 元</p>
+              <p>年利率: {{ loan.interestRate }}%</p>
+              <p>贷款期限: {{ loan.loanTerm }} 个月</p>
+              <p>申请日期: {{ formatDate(loan.applicationDate) }}</p>
+              <p>状态: <span :class="getStatusClass(loan.status)">{{ loan.status }}</span></p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import api from '../api/api';
+import Layout from '../components/Layout.vue';
 
 export default {
   name: 'LoanApply',
+  components: {
+    Layout
+  },
   data() {
     return {
       loan: {

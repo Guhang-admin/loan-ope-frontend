@@ -1,44 +1,50 @@
 <template>
-  <div class="repayment-record">
-    <h1>还款记录</h1>
-    <div class="search-section">
-      <input type="number" v-model="loanId" placeholder="请输入贷款ID">
-      <button class="search-btn" @click="searchRecords" :disabled="loading">查询</button>
+  <Layout>
+    <div class="repayment-record">
+      <h1>还款记录</h1>
+      <div class="search-section">
+        <input type="number" v-model="loanId" placeholder="请输入贷款ID">
+        <button class="search-btn" @click="searchRecords" :disabled="loading">查询</button>
+      </div>
+      <div v-if="loading" class="loading">加载中...</div>
+      <div v-else-if="records.length > 0" class="record-list">
+        <table>
+          <thead>
+            <tr>
+              <th>还款ID</th>
+              <th>贷款ID</th>
+              <th>还款日期</th>
+              <th>还款金额</th>
+              <th>还款方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="record in records" :key="record.id">
+              <td>{{ record.id }}</td>
+              <td>{{ record.loanId }}</td>
+              <td>{{ formatDate(record.paymentDate) }}</td>
+              <td>{{ record.amount.toFixed(2) }}</td>
+              <td>{{ record.paymentMethod }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else class="no-data">
+        <p>暂无还款记录数据</p>
+      </div>
     </div>
-    <div v-if="loading" class="loading">加载中...</div>
-    <div v-else-if="records.length > 0" class="record-list">
-      <table>
-        <thead>
-          <tr>
-            <th>还款ID</th>
-            <th>贷款ID</th>
-            <th>还款日期</th>
-            <th>还款金额</th>
-            <th>还款方式</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="record in records" :key="record.id">
-            <td>{{ record.id }}</td>
-            <td>{{ record.loanId }}</td>
-            <td>{{ formatDate(record.paymentDate) }}</td>
-            <td>{{ record.amount.toFixed(2) }}</td>
-            <td>{{ record.paymentMethod }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-else class="no-data">
-      <p>暂无还款记录数据</p>
-    </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import api from '../api/api';
+import Layout from '../components/Layout.vue';
 
 export default {
   name: 'RepaymentRecord',
+  components: {
+    Layout
+  },
   data() {
     return {
       loanId: 1,

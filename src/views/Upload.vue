@@ -1,42 +1,48 @@
 <template>
-  <div class="upload">
-    <h1>文件上传</h1>
-    <div class="upload-container">
-      <div class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
-        <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" multiple />
-        <div class="upload-icon">📁</div>
-        <p>点击或拖拽文件到此处上传</p>
-        <button class="upload-btn" @click="triggerFileInput">选择文件</button>
-      </div>
-      <div v-if="files.length > 0" class="file-list">
-        <h3>待上传文件</h3>
-        <ul>
-          <li v-for="(file, index) in files" :key="index">
-            {{ file.name }}
-            <span class="file-size">{{ formatFileSize(file.size) }}</span>
-            <button class="remove-btn" @click="removeFile(index)">×</button>
-          </li>
-        </ul>
-        <button class="submit-btn" @click="uploadFiles">开始上传</button>
-      </div>
-      <div v-if="uploading" class="upload-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+  <Layout>
+    <div class="upload">
+      <h1>文件上传</h1>
+      <div class="upload-container">
+        <div class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
+          <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" multiple />
+          <div class="upload-icon">📁</div>
+          <p>点击或拖拽文件到此处上传</p>
+          <button class="upload-btn" @click="triggerFileInput">选择文件</button>
         </div>
-        <p>上传中... {{ progress }}%</p>
-      </div>
-      <div v-if="uploadSuccess" class="upload-success">
-        <p>文件上传成功！</p>
+        <div v-if="files.length > 0" class="file-list">
+          <h3>待上传文件</h3>
+          <ul>
+            <li v-for="(file, index) in files" :key="index">
+              {{ file.name }}
+              <span class="file-size">{{ formatFileSize(file.size) }}</span>
+              <button class="remove-btn" @click="removeFile(index)">×</button>
+            </li>
+          </ul>
+          <button class="submit-btn" @click="uploadFiles">开始上传</button>
+        </div>
+        <div v-if="uploading" class="upload-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+          </div>
+          <p>上传中... {{ progress }}%</p>
+        </div>
+        <div v-if="uploadSuccess" class="upload-success">
+          <p>文件上传成功！</p>
+        </div>
       </div>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import api from '../api/api';
+import Layout from '../components/Layout.vue';
 
 export default {
   name: 'Upload',
+  components: {
+    Layout
+  },
   data() {
     return {
       files: [],

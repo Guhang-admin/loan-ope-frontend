@@ -1,78 +1,84 @@
 <template>
-  <div class="credit-score">
-    <h1>用户信誉度</h1>
-    <div v-if="loading" class="loading">加载中...</div>
-    <div v-else class="user-list">
-      <h2>用户列表</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>用户ID</th>
-            <th>用户名</th>
-            <th>姓名</th>
-            <th>角色</th>
-            <th>信誉分数</th>
-            <th>评级</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.id" @click="selectUser(user)">
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.creditScore }}</td>
-            <td :class="['rating', getRatingClass(user.creditScore)]">{{ getRating(user.creditScore) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-if="selectedUser" class="user-detail">
-      <h2>用户详情</h2>
-      <div class="detail-card">
-        <div class="detail-item">
-          <label>用户ID:</label>
-          <span>{{ selectedUser.id }}</span>
-        </div>
-        <div class="detail-item">
-          <label>用户名:</label>
-          <span>{{ selectedUser.username }}</span>
-        </div>
-        <div class="detail-item">
-          <label>姓名:</label>
-          <span>{{ selectedUser.name }}</span>
-        </div>
-        <div class="detail-item">
-          <label>角色:</label>
-          <span>{{ selectedUser.role }}</span>
-        </div>
-        <div class="detail-item">
-          <label>信誉分数:</label>
-          <span class="score">{{ selectedUser.creditScore }}</span>
-        </div>
-        <div class="detail-item">
-          <label>评级:</label>
-          <span :class="['rating', getRatingClass(selectedUser.creditScore)]">{{ getRating(selectedUser.creditScore) }}</span>
-        </div>
-        <div class="detail-item">
-          <label>信誉评价:</label>
-          <span>{{ getCreditEvaluation(selectedUser.creditScore) }}</span>
-        </div>
-        <div class="detail-item">
-          <label>调整信誉分数:</label>
-          <input type="number" v-model="newCreditScore" :min="0" :max="1000" step="1">
-          <button class="update-btn" @click="updateCreditScore" :disabled="updating">更新</button>
+  <Layout>
+    <div class="credit-score">
+      <h1>用户信誉度</h1>
+      <div v-if="loading" class="loading">加载中...</div>
+      <div v-else class="user-list">
+        <h2>用户列表</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>用户ID</th>
+              <th>用户名</th>
+              <th>姓名</th>
+              <th>角色</th>
+              <th>信誉分数</th>
+              <th>评级</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users" :key="user.id" @click="selectUser(user)">
+              <td>{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.name }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.creditScore }}</td>
+              <td :class="['rating', getRatingClass(user.creditScore)]">{{ getRating(user.creditScore) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="selectedUser" class="user-detail">
+        <h2>用户详情</h2>
+        <div class="detail-card">
+          <div class="detail-item">
+            <label>用户ID:</label>
+            <span>{{ selectedUser.id }}</span>
+          </div>
+          <div class="detail-item">
+            <label>用户名:</label>
+            <span>{{ selectedUser.username }}</span>
+          </div>
+          <div class="detail-item">
+            <label>姓名:</label>
+            <span>{{ selectedUser.name }}</span>
+          </div>
+          <div class="detail-item">
+            <label>角色:</label>
+            <span>{{ selectedUser.role }}</span>
+          </div>
+          <div class="detail-item">
+            <label>信誉分数:</label>
+            <span class="score">{{ selectedUser.creditScore }}</span>
+          </div>
+          <div class="detail-item">
+            <label>评级:</label>
+            <span :class="['rating', getRatingClass(selectedUser.creditScore)]">{{ getRating(selectedUser.creditScore) }}</span>
+          </div>
+          <div class="detail-item">
+            <label>信誉评价:</label>
+            <span>{{ getCreditEvaluation(selectedUser.creditScore) }}</span>
+          </div>
+          <div class="detail-item">
+            <label>调整信誉分数:</label>
+            <input type="number" v-model="newCreditScore" :min="0" :max="1000" step="1">
+            <button class="update-btn" @click="updateCreditScore" :disabled="updating">更新</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <script>
 import api from '../api/api';
+import Layout from '../components/Layout.vue';
 
 export default {
   name: 'CreditScore',
+  components: {
+    Layout
+  },
   data() {
     return {
       users: [],
