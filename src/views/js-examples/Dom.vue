@@ -5,50 +5,35 @@
         <i class="back-icon">🏠</i>
         <span>返回主页面</span>
       </button>
-      <h1>第3期：DOM 操作性能 - 频繁操作 DOM 导致的性能问题</h1>
+      <h1>第3期：DOM 操作性能问题</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
-      <p>频繁的 DOM 操作会导致重排和重绘，影响页面性能。常见问题包括频繁操作 DOM、频繁读取布局属性、未使用事件委托、直接修改 style 等。</p>
+      <p>频繁 DOM 操作导致的性能问题，包括布局抖动、重排重绘、事件委托不当等。</p>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
+
         <div class="demo-buttons">
-          <button @click="testFrequentDomOperations" class="btn btn-danger">
-            测试频繁 DOM 操作
+          <button @click="testBadDomOperation" :class="buttonTypes.danger.class">
+            测试不良 DOM 操作
           </button>
-          <button @click="testFrequentLayoutReads" class="btn btn-danger">
-            测试频繁布局读取
+          <button @click="testGoodDomOperation" :class="buttonTypes.success.class">
+            测试优化 DOM 操作
           </button>
-          <button @click="testNoEventDelegation" class="btn btn-danger">
-            测试无事件委托
-          </button>
-          <button @click="testDirectStyleModification" class="btn btn-danger">
-            测试直接修改样式
-          </button>
-          <button @click="testUseDocumentFragment" class="btn btn-success">
-            测试文档片段
-          </button>
-          <button @click="testBatchLayoutOperations" class="btn btn-success">
-            测试批量布局操作
-          </button>
-          <button @click="testUseEventDelegation" class="btn btn-success">
+          <button @click="testEventDelegation" :class="buttonTypes.success.class">
             测试事件委托
           </button>
-          <button @click="testUseCssClasses" class="btn btn-success">
-            测试 CSS 类
-          </button>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="resultStatus[result.status].class">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
@@ -56,709 +41,247 @@
             <div class="result-item" v-if="result.time">
               <strong>执行时间：</strong>{{ result.time }}ms
             </div>
-            <div class="result-item" v-if="result.detail">
-              <strong>详情：</strong>{{ result.detail }}
-            </div>
-            <div class="result-item" v-if="result.error">
-              <strong>错误：</strong>{{ result.error }}
+            <div class="result-item" v-if="result.operations">
+              <strong>操作次数：</strong>{{ result.operations }}
             </div>
           </div>
         </div>
-        
+
         <div class="console-section">
-          <h3>控制台</h3>
-          <div class="console-content">
-            <div v-for="(log, index) in consoleLogs" :key="index" class="console-log">
+          <h3>控制台输出</h3>
+          <div class="console">
+            <div v-for="(log, index) in consoleLogs" :key="index" class="log-item">
               {{ log }}
             </div>
           </div>
-          <button @click="clearConsole" class="btn btn-default">
+          <button @click="clearConsole" :class="buttonTypes.secondary.class">
             清空控制台
           </button>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        <div class="tabs">
-          <button 
-            @click="activeTab = 'error'" 
-            class="tab-btn" 
-            :class="activeTab === 'error' ? 'active' : ''"
-          >
-            错误代码
-          </button>
-          <button 
-            @click="activeTab = 'fixed'" 
-            class="tab-btn" 
-            :class="activeTab === 'fixed' ? 'active' : ''"
-          >
-            正确代码
-          </button>
-        </div>
-        <div class="code-content">
-          <pre v-if="activeTab === 'error'">{{ errorCode }}</pre>
-          <pre v-else-if="activeTab === 'fixed'">{{ fixedCode }}</pre>
+
+        <div class="code-tabs">
+          <div class="tab">
+            <button
+              v-for="(config, key) in tabConfigs"
+              :key="key"
+              @click="switchTab(key)"
+              :class="{ active: activeTab === key }"
+            >
+              {{ config.icon }} {{ config.label }}
+            </button>
+          </div>
+
+          <div class="code-content" v-show="activeTab === 'error'">
+            <pre><code>{{ errorCode }}</code></pre>
+          </div>
+
+          <div class="code-content" v-show="activeTab === 'fixed'">
+            <pre><code>{{ fixedCode }}</code></pre>
+          </div>
         </div>
       </div>
-      
-      <div class="performance-section">
-        <h2>性能统计</h2>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <strong>渲染时间：</strong>{{ performanceStats.renderTime }}ms
-          </div>
-          <div class="stat-item">
-            <strong>布局时间：</strong>{{ performanceStats.layoutTime }}ms
-          </div>
-          <div class="stat-item">
-            <strong>绘制时间：</strong>{{ performanceStats.paintTime }}ms
-          </div>
-        </div>
+
+      <div class="solution-section">
+        <h2>解决方案</h2>
+        <ul>
+          <li><strong>批量 DOM 操作：</strong>使用 DocumentFragment 或 innerHTML 批量更新</li>
+          <li><strong>减少重排重绘：</strong>使用 CSS transforms、避免频繁修改样式</li>
+          <li><strong>事件委托：</strong>利用事件冒泡，减少事件监听器数量</li>
+          <li><strong>虚拟列表：</strong>处理大量数据时使用虚拟滚动</li>
+          <li><strong>防抖和节流：</strong>对频繁触发的事件进行优化</li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { badDomExample, goodDomExample } from '../../examples/DomPerformanceExample';
+import api from '../../api/api';
+import { exampleMixin, exampleStyles, performanceMonitor } from '../../utils/exampleMixin';
 
 export default {
   name: 'DomExample',
+  mixins: [exampleMixin],
   data() {
     return {
-      result: null,
-      consoleLogs: [],
-      performanceStats: {
-        renderTime: 0,
-        layoutTime: 0,
-        paintTime: 0
-      },
-      activeTab: 'error',
-      errorCode: `// 频繁操作 DOM
-function frequentDomOperations() {
-  const start = performance.now();
+      errorCode: `// 1. 频繁 DOM 操作
+function badDomOperation() {
+  const container = document.getElementById('container');
   
-  const container = document.createElement('div');
-  container.id = 'bad-container';
-  document.body.appendChild(container);
-  
-  // 错误：每次循环都操作 DOM
+  // 问题：每次循环都触发重排重绘
   for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    element.textContent = \`Item \${i}\`;
-    container.appendChild(element); // 每次都触发重排
+    const div = document.createElement('div');
+    div.textContent = 'Item ' + i;
+    container.appendChild(div);
   }
-  
-  const end = performance.now();
-  console.log('Frequent DOM operations time:', end - start);
 }
 
-// 频繁读取布局属性
-function frequentLayoutReads() {
-  const start = performance.now();
+// 2. 频繁样式修改
+function badStyleOperation() {
+  const element = document.getElementById('element');
   
-  const container = document.createElement('div');
-  container.id = 'layout-container';
-  document.body.appendChild(container);
-  
-  for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    element.textContent = \`Item \${i}\`;
-    container.appendChild(element);
-    
-    // 错误：每次都读取布局属性，触发强制同步布局
-    const height = element.offsetHeight;
-    console.log('Element height:', height);
-  }
-  
-  const end = performance.now();
-  console.log('Frequent layout reads time:', end - start);
+  // 问题：每次修改都可能触发重排
+  element.style.width = '100px';
+  element.style.height = '100px';
+  element.style.backgroundColor = 'red';
+  element.style.border = '1px solid black';
 }
 
-// 未使用事件委托
-function noEventDelegation() {
-  const container = document.createElement('ul');
-  container.id = 'no-delegation';
-  document.body.appendChild(container);
+// 3. 事件监听器过多
+function badEventListeners() {
+  const items = document.querySelectorAll('.item');
   
-  // 错误：为每个元素添加事件监听器
-  for (let i = 0; i < 100; i++) {
-    const li = document.createElement('li');
-    li.textContent = \`Item \${i}\`;
-    li.addEventListener('click', function() {
-      console.log('Item clicked:', i);
+  // 问题：为每个元素添加监听器
+  items.forEach(item => {
+    item.addEventListener('click', function() {
+      console.log('Item clicked:', this.textContent);
     });
-    container.appendChild(li);
-  }
-}
-
-// 直接修改 style
-function directStyleModification() {
-  const start = performance.now();
-  
-  const container = document.createElement('div');
-  container.id = 'style-container';
-  document.body.appendChild(container);
-  
-  for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    // 错误：直接修改 style，触发重绘
-    element.style.width = '100px';
-    element.style.height = '100px';
-    element.style.backgroundColor = 'red';
-    element.style.margin = '10px';
-    element.textContent = \`Item \${i}\`;
-    container.appendChild(element);
-  }
-  
-  const end = performance.now();
-  console.log('Direct style modification time:', end - start);
+  });
 }`,
-      fixedCode: `// 使用文档片段
-function useDocumentFragment() {
-  const start = performance.now();
-  
-  const container = document.createElement('div');
-  container.id = 'good-container';
-  document.body.appendChild(container);
-  
-  // 正确：使用文档片段，减少 DOM 操作次数
+      fixedCode: `// 1. 批量 DOM 操作
+function goodDomOperation() {
+  const container = document.getElementById('container');
   const fragment = document.createDocumentFragment();
+  
+  // 解决方案：使用 DocumentFragment 批量操作
   for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    element.textContent = \`Item \${i}\`;
-    fragment.appendChild(element); // 先添加到片段
+    const div = document.createElement('div');
+    div.textContent = 'Item ' + i;
+    fragment.appendChild(div);
   }
   
-  container.appendChild(fragment); // 一次性添加到 DOM
-  
-  const end = performance.now();
-  console.log('Document fragment time:', end - start);
+  container.appendChild(fragment);
 }
 
-// 批量读写布局属性
-function batchLayoutOperations() {
-  const start = performance.now();
+// 2. 批量样式修改
+function goodStyleOperation() {
+  const element = document.getElementById('element');
   
-  const container = document.createElement('div');
-  container.id = 'batch-container';
-  document.body.appendChild(container);
+  // 解决方案：使用 class 或一次性修改
+  element.className = 'styled-element';
   
-  // 正确：先批量写入
-  for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    element.textContent = \`Item \${i}\`;
-    container.appendChild(element);
-  }
-  
-  // 再批量读取
-  const elements = container.querySelectorAll('div');
-  elements.forEach((element, index) => {
-    const height = element.offsetHeight;
-    console.log('Element', index, 'height:', height);
-  });
-  
-  const end = performance.now();
-  console.log('Batch layout operations time:', end - start);
+  // 或使用 CSSText
+  element.style.cssText = 'width: 100px; height: 100px; background-color: red; border: 1px solid black;';
 }
 
-// 使用事件委托
-function useEventDelegation() {
-  const container = document.createElement('ul');
-  container.id = 'with-delegation';
-  document.body.appendChild(container);
+// 3. 事件委托
+function goodEventDelegation() {
+  const container = document.getElementById('container');
   
-  // 正确：使用事件委托，只添加一个监听器
-  for (let i = 0; i < 100; i++) {
-    const li = document.createElement('li');
-    li.textContent = \`Item \${i}\`;
-    li.dataset.index = i;
-    container.appendChild(li);
-  }
-  
+  // 解决方案：使用事件委托
   container.addEventListener('click', function(event) {
-    if (event.target.tagName === 'LI') {
-      const index = event.target.dataset.index;
-      console.log('Item clicked:', index);
+    if (event.target.classList.contains('item')) {
+      console.log('Item clicked:', event.target.textContent);
     }
   });
 }
 
-// 使用 CSS 类
-function useCssClasses() {
-  const start = performance.now();
-  
-  // 先添加样式
-  const style = document.createElement('style');
-  style.textContent = \`
-    .item {
-      width: 100px;
-      height: 100px;
-      background-color: blue;
-      margin: 10px;
-    }
-  \`;
-  document.head.appendChild(style);
-  
-  const container = document.createElement('div');
-  container.id = 'css-container';
-  document.body.appendChild(container);
-  
-  // 正确：使用 CSS 类，减少样式操作
-  for (let i = 0; i < 1000; i++) {
-    const element = document.createElement('div');
-    element.className = 'item'; // 使用 CSS 类
-    element.textContent = \`Item \${i}\`;
-    container.appendChild(element);
-  }
-  
-  const end = performance.now();
-  console.log('CSS classes time:', end - start);
+// 4. 防抖和节流
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, arguments), wait);
+  };
 }
 
-// 使用 requestAnimationFrame
-function useRequestAnimationFrame() {
-  let count = 0;
-  const maxCount = 100;
-  
-  function update() {
-    if (count < maxCount) {
-      const element = document.createElement('div');
-      element.textContent = \`Animated item \${count}\`;
-      document.body.appendChild(element);
-      count++;
-      requestAnimationFrame(update);
+function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    if (!inThrottle) {
+      func.apply(this, arguments);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
     }
-  }
-  
-  requestAnimationFrame(update);
-}`
+  };
+}`,
+      buttonTypes: exampleStyles.buttonTypes,
+      resultStatus: exampleStyles.resultStatus,
+      tabConfigs: {
+        error: exampleStyles.tabs.error,
+        fixed: exampleStyles.tabs.fixed
+      }
     };
   },
-  mounted() {
-    this.updatePerformanceStats();
-  },
   methods: {
-    goBack() {
-      this.$router.push('/');
-    },
-    log(message) {
-      this.consoleLogs.push(message);
-      if (this.consoleLogs.length > 50) {
-        this.consoleLogs.shift();
+    async testBadDomOperation() {
+      try {
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试不良 DOM 操作...');
+        
+        performanceMonitor.start('badDom');
+        const response = await api.jsExamples.dom.testBadDomOperation();
+        const duration = performanceMonitor.end('badDom');
+        
+        this.result = {
+          ...response,
+          time: Math.round(duration)
+        };
+        this.log('不良 DOM 操作测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
-    clearConsole() {
-      this.consoleLogs = [];
-    },
-    updatePerformanceStats() {
-      // 模拟性能统计数据
-      this.performanceStats = {
-        renderTime: (Math.random() * 100).toFixed(2),
-        layoutTime: (Math.random() * 50).toFixed(2),
-        paintTime: (Math.random() * 30).toFixed(2)
-      };
-    },
-    async testFrequentDomOperations() {
-      this.log('开始测试频繁 DOM 操作...');
-      const start = performance.now();
+
+    async testGoodDomOperation() {
       try {
-        const result = badDomExample.frequentDomOperations();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试优化 DOM 操作...');
+        
+        performanceMonitor.start('goodDom');
+        const response = await api.jsExamples.dom.testGoodDomOperation();
+        const duration = performanceMonitor.end('goodDom');
+        
         this.result = {
-          status: 'error',
-          message: '频繁 DOM 操作测试完成，执行时间较长',
-          time: end - start,
-          detail: '每次循环都操作 DOM，触发多次重排'
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('频繁 DOM 操作测试完成，时间:', end - start);
+        this.log('优化 DOM 操作测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
-    async testFrequentLayoutReads() {
-      this.log('开始测试频繁布局读取...');
-      const start = performance.now();
+
+    async testEventDelegation() {
       try {
-        const result = badDomExample.frequentLayoutReads();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试事件委托...');
+        
+        performanceMonitor.start('eventDelegation');
+        const response = await api.jsExamples.dom.testEventDelegation();
+        const duration = performanceMonitor.end('eventDelegation');
+        
         this.result = {
-          status: 'error',
-          message: '频繁布局读取测试完成，执行时间较长',
-          time: end - start,
-          detail: '每次都读取布局属性，触发强制同步布局'
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('频繁布局读取测试完成，时间:', end - start);
+        this.log('事件委托测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testNoEventDelegation() {
-      this.log('开始测试无事件委托...');
-      try {
-        const result = badDomExample.noEventDelegation();
-        this.result = {
-          status: 'error',
-          message: '无事件委托测试完成',
-          detail: '为每个元素添加了事件监听器，共 100 个'
-        };
-        this.log('无事件委托测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    async testDirectStyleModification() {
-      this.log('开始测试直接修改样式...');
-      const start = performance.now();
-      try {
-        const result = badDomExample.directStyleModification();
-        const end = performance.now();
-        this.result = {
-          status: 'error',
-          message: '直接修改样式测试完成，执行时间较长',
-          time: end - start,
-          detail: '每次都直接修改 style，触发多次重绘'
-        };
-        this.log('直接修改样式测试完成，时间:', end - start);
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    async testUseDocumentFragment() {
-      this.log('开始测试文档片段...');
-      const start = performance.now();
-      try {
-        const result = goodDomExample.useDocumentFragment();
-        const end = performance.now();
-        this.result = {
-          status: 'success',
-          message: '文档片段测试完成，执行时间较短',
-          time: end - start,
-          detail: '使用文档片段，减少 DOM 操作次数'
-        };
-        this.log('文档片段测试完成，时间:', end - start);
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    async testBatchLayoutOperations() {
-      this.log('开始测试批量布局操作...');
-      const start = performance.now();
-      try {
-        const result = goodDomExample.batchLayoutOperations();
-        const end = performance.now();
-        this.result = {
-          status: 'success',
-          message: '批量布局操作测试完成，执行时间较短',
-          time: end - start,
-          detail: '先批量写入，再批量读取，避免布局抖动'
-        };
-        this.log('批量布局操作测试完成，时间:', end - start);
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testUseEventDelegation() {
-      this.log('开始测试事件委托...');
-      try {
-        const result = goodDomExample.useEventDelegation();
-        this.result = {
-          status: 'success',
-          message: '事件委托测试完成',
-          detail: '只添加了一个事件监听器，提高性能'
-        };
-        this.log('事件委托测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    async testUseCssClasses() {
-      this.log('开始测试 CSS 类...');
-      const start = performance.now();
-      try {
-        const result = goodDomExample.useCssClasses();
-        const end = performance.now();
-        this.result = {
-          status: 'success',
-          message: 'CSS 类测试完成，执行时间较短',
-          time: end - start,
-          detail: '使用 CSS 类，减少样式操作次数'
-        };
-        this.log('CSS 类测试完成，时间:', end - start);
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>
+/* 只保留组件特有的样式，通用样式已移至 common.css */
 .dom-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  color: #333;
-  text-align: center;
-  margin: 0;
-  flex: 1;
-}
-
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.case-content {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.demo-section {
-  margin-bottom: 40px;
-}
-
-.demo-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #218838;
-}
-
-.btn-default {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-default:hover {
-  background-color: #5a6268;
-}
-
-.result-section {
-  margin: 20px 0;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.result-card.error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.console-section {
-  margin-top: 30px;
-}
-
-.console-content {
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 15px;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
-.console-log {
-  margin-bottom: 5px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-}
-
-.code-section {
-  margin: 40px 0;
-}
-
-.tabs {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.tab-btn {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-  transition: background-color 0.3s;
-}
-
-.tab-btn.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.performance-section {
-  margin-top: 40px;
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.stat-item {
-  background: white;
-  padding: 15px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-  .demo-buttons {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

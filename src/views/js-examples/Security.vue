@@ -5,82 +5,42 @@
         <i class="back-icon">🏠</i>
         <span>返回主页面</span>
       </button>
-      <h1>第4期：安全问题 - XSS 和 CSRF 等前端安全漏洞</h1>
+      <h1>第4期：安全问题</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
-      <p>前端常见的安全漏洞包括 XSS（跨站脚本攻击）、CSRF（跨站请求伪造）、敏感数据暴露、开放重定向等，这些问题可能导致用户数据泄露、账户被盗等严重后果。</p>
+      <p>JavaScript 前端常见的安全问题，包括 XSS、CSRF、敏感数据暴露、开放重定向等。</p>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
+
         <div class="demo-buttons">
-          <button @click="testXssVulnerability" class="btn btn-danger">
+          <button @click="testXssVulnerability" class="btn danger">
             测试 XSS 漏洞
           </button>
-          <button @click="testSensitiveDataExposure" class="btn btn-danger">
-            测试敏感数据暴露
-          </button>
-          <button @click="testCsrfVulnerability" class="btn btn-danger">
+          <button @click="testCsrfVulnerability" class="btn danger">
             测试 CSRF 漏洞
           </button>
-          <button @click="testOpenRedirect" class="btn btn-danger">
-            测试开放重定向
-          </button>
-          <button @click="testPreventXSS" class="btn btn-success">
-            测试防止 XSS
-          </button>
-          <button @click="testSecureDataStorage" class="btn btn-success">
-            测试安全数据存储
-          </button>
-          <button @click="testPreventCSRF" class="btn btn-success">
-            测试防止 CSRF
-          </button>
-          <button @click="testPreventOpenRedirect" class="btn btn-success">
-            测试防止开放重定向
+          <button @click="testSecureCode" class="btn success">
+            测试安全代码
           </button>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="result.status">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ result.status }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
             </div>
-            <div class="result-item" v-if="result.detail">
-              <strong>详情：</strong>{{ result.detail }}
-            </div>
           </div>
         </div>
-        
-        <div class="security-tips">
-          <h3>安全提示</h3>
-          <div class="tips-grid">
-            <div class="tip-item">
-              <i class="fas fa-shield-alt"></i>
-              <p>永远不要信任用户输入</p>
-            </div>
-            <div class="tip-item">
-              <i class="fas fa-lock"></i>
-              <p>使用 HTTPS 保护数据传输</p>
-            </div>
-            <div class="tip-item">
-              <i class="fas fa-user-shield"></i>
-              <p>实施内容安全策略 (CSP)</p>
-            </div>
-            <div class="tip-item">
-              <i class="fas fa-key"></i>
-              <p>使用 CSRF token 保护表单</p>
-            </div>
-          </div>
-        </div>
-        
+
         <div class="console-section">
           <h3>控制台输出</h3>
           <div class="console">
@@ -88,51 +48,76 @@
               {{ log }}
             </div>
           </div>
-          <button @click="clearConsole" class="btn btn-secondary">
+          <button @click="clearConsole" class="btn secondary">
             清空控制台
           </button>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        
+
         <div class="code-tabs">
           <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
+            <button
+              v-for="tab in ['error', 'fixed']"
+              :key="tab"
+              @click="activeTab = tab"
+              :class="{ active: activeTab === tab }"
+            >
+              {{ tab === 'error' ? '❌ 问题代码' : '✅ 修复代码' }}
             </button>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'error'">
             <pre><code>{{ errorCode }}</code></pre>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'fixed'">
             <pre><code>{{ fixedCode }}</code></pre>
           </div>
         </div>
       </div>
-      
-      <div class="solution-section">
-        <h2>解决方案</h2>
-        <ul>
-          <li><strong>防止 XSS：</strong>转义用户输入，使用 innerText 或 createTextNode</li>
-          <li><strong>防止 CSRF：</strong>使用 CSRF token，验证来源</li>
-          <li><strong>敏感数据：</strong>不存储敏感信息在前端，使用加密</li>
-          <li><strong>开放重定向：</strong>验证重定向 URL，限制域名</li>
-          <li><strong>内容安全策略：</strong>设置 CSP 头部</li>
-        </ul>
+
+      <div class="security-tips">
+        <h2>安全提示</h2>
+        <div class="tips-grid">
+          <div class="tip-item">
+            <div class="tip-icon">🛡️</div>
+            <div class="tip-content">
+              <h3>输入验证</h3>
+              <p>对所有用户输入进行严格验证，避免恶意代码注入</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon">🔒</div>
+            <div class="tip-content">
+              <h3>数据加密</h3>
+              <p>敏感数据传输和存储时使用加密</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon">🚫</div>
+            <div class="tip-content">
+              <h3>XSS 防护</h3>
+              <p>使用 HTML 转义，避免直接插入 HTML</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon">🔐</div>
+            <div class="tip-content">
+              <h3>CSRF 防护</h3>
+              <p>使用 CSRF Token，验证请求来源</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { badSecurityExample, goodSecurityExample } from '../../examples/SecurityExample';
+import api from '../../api/api'
 
 export default {
   name: 'SecurityExample',
@@ -141,612 +126,105 @@ export default {
       result: null,
       consoleLogs: [],
       activeTab: 'error',
-      errorCode: `// XSS 攻击 - 未转义用户输入
-function xssVulnerability() {
-  const userInput = '<script>alert("XSS Attack!")</script>';
-  
-  // 错误：直接插入 HTML，允许执行恶意脚本
-  const container = document.createElement('div');
-  container.innerHTML = \`User input: \${userInput}\`; // 危险！
-  document.body.appendChild(container);
-}
-
-// 敏感数据暴露
-function sensitiveDataExposure() {
-  // 错误：在前端存储敏感信息
-  localStorage.setItem('apiKey', 'secret_api_key_12345');
-  sessionStorage.setItem('userToken', 'bearer_token_67890');
-  
-  // 错误：在 URL 中传递敏感信息
-  const userId = 12345;
-  const url = \`https://example.com/api/user/\${userId}?token=secret_token\`;
-  console.log('Sensitive URL:', url);
-}
-
-// CSRF 漏洞
-function csrfVulnerability() {
-  // 错误：直接发起 POST 请求，没有 CSRF 保护
-  function submitForm() {
-    fetch('https://example.com/api/transfer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: 1000,
-        toAccount: 'attacker_account'
-      })
-    });
-  }
-}
-
-// 未验证的重定向
-function openRedirect() {
-  // 错误：直接重定向到用户提供的 URL
-  function redirectTo(url) {
-    window.location.href = url; // 危险！
-  }
-  
-  // 攻击者可以构造恶意 URL
-  const userInputUrl = 'https://malicious.com';
-  // redirectTo(userInputUrl); // 取消注释以测试
-}
-
-// 不安全的直接对象引用
-function insecureDirectObjectReference() {
-  // 错误：直接使用用户输入的 ID
-  function getUserData(userId) {
-    // 假设这是一个 API 调用
-    return fetch(\`https://example.com/api/users/\${userId}\`)
-      .then(response => response.json());
-  }
-  
-  // 攻击者可以尝试访问其他用户的数据
-  const userInputId = '123'; // 攻击者输入的 ID
-  getUserData(userInputId);
+      errorCode: `// XSS 漏洞示例
+function vulnerableXss() {
+  const userInput = document.getElementById('userInput').value;
+  document.getElementById('output').innerHTML = userInput;
 }`,
-      fixedCode: `// 防止 XSS - 转义用户输入
-function preventXSS() {
-  const userInput = '<script>alert("XSS Attack!")</script>';
-  
-  // 正确：转义 HTML 字符
-  const container = document.createElement('div');
-  const textNode = document.createTextNode(\`User input: \${userInput}\`);
-  container.appendChild(textNode);
-  document.body.appendChild(container);
-  
-  // 或者使用 innerText
-  const container2 = document.createElement('div');
-  container2.innerText = \`User input (innerText): \${userInput}\`;
-  document.body.appendChild(container2);
-}
-
-// 安全存储敏感信息
-function secureDataStorage() {
-  // 正确：不存储敏感信息在前端
-  // 可以使用 HttpOnly cookie 存储会话信息
-  
-  // 对于需要在前端存储的数据，使用加密
-  function encryptData(data) {
-    // 简单的加密示例（实际应用中应使用更安全的方法）
-    return btoa(JSON.stringify(data));
-  }
-  
-  function decryptData(encrypted) {
-    return JSON.parse(atob(encrypted));
-  }
-  
-  const userData = { userId: 123, role: 'user' };
-  const encrypted = encryptData(userData);
-  localStorage.setItem('userData', encrypted);
-}
-
-// 防止 CSRF
-function preventCSRF() {
-  // 正确：使用 CSRF token
-  function getCSRFToken() {
-    // 从 cookie 或 meta 标签获取
-    return document.querySelector('meta[name="csrf-token"]')?.content || '';
-  }
-  
-  function submitForm() {
-    fetch('https://example.com/api/transfer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': getCSRFToken() // 添加 CSRF token
-      },
-      credentials: 'same-origin', // 包含 cookie
-      body: JSON.stringify({
-        amount: 1000,
-        toAccount: 'recipient_account'
-      })
-    });
-  }
-}
-
-// 安全的对象引用
-function secureObjectReference() {
-  // 正确：验证用户权限
-  function getUserData(userId) {
-    // 首先验证用户是否有权限访问该用户数据
-    return fetch(\`https://example.com/api/users/\${userId}\`, {
-      headers: {
-        'Authorization': 'Bearer ' + getAuthToken()
-      }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Unauthorized');
-      }
-      return response.json();
-    });
-  }
-  
-  function getAuthToken() {
-    // 从安全的存储中获取 token
-    return sessionStorage.getItem('authToken') || '';
-  }
-}
-
-// 防止开放重定向
-function preventOpenRedirect() {
-  // 正确：验证重定向 URL
-  function safeRedirect(url) {
-    const allowedDomains = ['example.com', 'trusted-domain.com'];
-    
-    try {
-      const urlObj = new URL(url);
-      const domain = urlObj.hostname;
-      
-      if (allowedDomains.includes(domain)) {
-        window.location.href = url;
-      } else {
-        console.error('Unauthorized redirect domain');
-        // 重定向到默认页面
-        window.location.href = '/';
-      }
-    } catch (error) {
-      console.error('Invalid URL:', error);
-      window.location.href = '/';
+      fixedCode: `// 修复 XSS 漏洞
+function secureXss() {
+  const userInput = document.getElementById('userInput').value;
+  document.getElementById('output').textContent = userInput;
+}`
     }
-  }
-}
-
-// 内容安全策略 (CSP)
-function contentSecurityPolicy() {
-  // 正确：使用 CSP 防止 XSS
-  const cspHeader = "default-src 'self'; script-src 'self' 'nonce-random123'; style-src 'self' 'unsafe-inline';";
-  
-  // 在服务器端设置 CSP 头部
-  // response.setHeader('Content-Security-Policy', cspHeader);
-  
-  console.log('Content Security Policy:', cspHeader);
-}
-`
-    };
   },
   methods: {
     goBack() {
-      this.$router.push('/');
+      this.$router.push('/')
     },
-    log(message) {
-      this.consoleLogs.push(message);
+    log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString()
+      const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`
+      this.consoleLogs.push(logEntry)
       if (this.consoleLogs.length > 50) {
-        this.consoleLogs.shift();
+        this.consoleLogs.shift()
       }
     },
     clearConsole() {
-      this.consoleLogs = [];
+      this.consoleLogs = []
     },
-    testXssVulnerability() {
-      this.log('测试 XSS 漏洞...');
+    clearResult() {
+      this.result = null
+    },
+    async testXssVulnerability() {
       try {
-        badSecurityExample.xssVulnerability();
-        this.result = {
-          status: 'error',
-          message: 'XSS 漏洞测试完成，存在安全风险',
-          detail: '未转义用户输入，允许执行恶意脚本'
-        };
-        this.log('XSS 漏洞测试完成');
+        this.clearResult()
+        this.clearConsole()
+        this.log('开始测试 XSS 漏洞...')
+        const response = await api.jsExamples.security.testXssVulnerability()
+        this.result = response
+        this.log('XSS 漏洞测试完成', response.status)
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.result = { status: 'error', message: error.message }
+        this.log('操作失败: ' + error.message, 'error')
       }
     },
-    testSensitiveDataExposure() {
-      this.log('测试敏感数据暴露...');
+    async testCsrfVulnerability() {
       try {
-        badSecurityExample.sensitiveDataExposure();
-        this.result = {
-          status: 'error',
-          message: '敏感数据暴露测试完成，存在安全风险',
-          detail: '在前端存储敏感信息，可能导致数据泄露'
-        };
-        this.log('敏感数据暴露测试完成');
+        this.clearResult()
+        this.clearConsole()
+        this.log('开始测试 CSRF 漏洞...')
+        const response = await api.jsExamples.security.testCsrfVulnerability()
+        this.result = response
+        this.log('CSRF 漏洞测试完成', response.status)
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.result = { status: 'error', message: error.message }
+        this.log('操作失败: ' + error.message, 'error')
       }
     },
-    testCsrfVulnerability() {
-      this.log('测试 CSRF 漏洞...');
+    async testSecureCode() {
       try {
-        badSecurityExample.csrfVulnerability();
-        this.result = {
-          status: 'error',
-          message: 'CSRF 漏洞测试完成，存在安全风险',
-          detail: '直接发起 POST 请求，没有 CSRF 保护'
-        };
-        this.log('CSRF 漏洞测试完成');
+        this.clearResult()
+        this.clearConsole()
+        this.log('开始测试安全代码...')
+        const response = await api.jsExamples.security.testSecureCode()
+        this.result = response
+        this.log('安全代码测试完成', response.status)
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testOpenRedirect() {
-      this.log('测试开放重定向...');
-      try {
-        badSecurityExample.openRedirect();
-        this.result = {
-          status: 'error',
-          message: '开放重定向测试完成，存在安全风险',
-          detail: '直接重定向到用户提供的 URL，可能导致钓鱼攻击'
-        };
-        this.log('开放重定向测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testPreventXSS() {
-      this.log('测试防止 XSS...');
-      try {
-        goodSecurityExample.preventXSS();
-        this.result = {
-          status: 'success',
-          message: '防止 XSS 测试完成，安全措施有效',
-          detail: '转义用户输入，使用 innerText 或 createTextNode'
-        };
-        this.log('防止 XSS 测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testSecureDataStorage() {
-      this.log('测试安全数据存储...');
-      try {
-        goodSecurityExample.secureDataStorage();
-        this.result = {
-          status: 'success',
-          message: '安全数据存储测试完成，安全措施有效',
-          detail: '不存储敏感信息在前端，使用加密存储'
-        };
-        this.log('安全数据存储测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testPreventCSRF() {
-      this.log('测试防止 CSRF...');
-      try {
-        goodSecurityExample.preventCSRF();
-        this.result = {
-          status: 'success',
-          message: '防止 CSRF 测试完成，安全措施有效',
-          detail: '使用 CSRF token，验证来源'
-        };
-        this.log('防止 CSRF 测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
-      }
-    },
-    testPreventOpenRedirect() {
-      this.log('测试防止开放重定向...');
-      try {
-        goodSecurityExample.preventOpenRedirect();
-        this.result = {
-          status: 'success',
-          message: '防止开放重定向测试完成，安全措施有效',
-          detail: '验证重定向 URL，限制域名'
-        };
-        this.log('防止开放重定向测试完成');
-      } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          detail: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.result = { status: 'error', message: error.message }
+        this.log('操作失败: ' + error.message, 'error')
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>
+/* 只保留组件特有的样式，通用样式已移至 common.css */
 .security-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
+.tip-icon {
+  font-size: 24px;
+  margin-right: 15px;
+  flex-shrink: 0;
 }
 
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  color: #333;
-  text-align: center;
-  margin: 0;
+.tip-content {
   flex: 1;
 }
 
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.tip-content h3 {
+  margin: 0 0 5px 0;
+  color: #333;
 }
 
-.case-content {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.demo-section {
-  margin-bottom: 40px;
-}
-
-.demo-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #218838;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-.result-section {
-  margin: 20px 0;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.result-card.error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.security-tips {
-  margin: 30px 0;
-  padding: 20px;
-  background: #e3f2fd;
-  border-radius: 8px;
-}
-
-.tips-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.tip-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: white;
-  padding: 15px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tip-item i {
-  color: #1976d2;
-  font-size: 18px;
-}
-
-.console-section {
-  margin-top: 30px;
-}
-
-.console {
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 15px;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
-.log-item {
-  margin-bottom: 5px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-}
-
-.code-section {
-  margin: 40px 0;
-}
-
-.code-tabs {
-  margin-bottom: 10px;
-}
-
-.tab {
-  display: flex;
-  gap: 10px;
-}
-
-.tab button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-
-.tab button.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
+.tip-content p {
   margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
+  color: #666;
   font-size: 14px;
-  line-height: 1.5;
-}
-
-.solution-section {
-  margin-top: 40px;
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.solution-section ul {
-  list-style-type: disc;
-  padding-left: 20px;
-}
-
-.solution-section li {
-  margin-bottom: 10px;
-}
-
-@media (max-width: 768px) {
-  .demo-buttons {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-  }
-  
-  .tips-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

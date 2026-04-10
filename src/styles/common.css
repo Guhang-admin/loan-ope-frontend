@@ -1,0 +1,445 @@
+/* 公共样式 - 案例页面共用 */
+
+/* 容器样式 */
+.example-container,
+.dataconsistency-container,
+.memoryleak-container,
+.concurrency-container,
+.async-container,
+.dom-container,
+.security-container,
+.js-examples-container,
+.examples-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* 头部样式 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+/* 回退按钮样式 */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+  background-color: #5568d3;
+}
+
+.back-icon {
+  font-size: 16px;
+}
+
+/* 标题样式 */
+h1 {
+  color: #333;
+  text-align: center;
+  margin: 0;
+  flex: 1;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+h3 {
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* 案例描述区域 */
+.case-description {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.case-description p {
+  color: #666;
+  line-height: 1.8;
+}
+
+/* 错误信息样式 */
+.error-message {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.error-message code {
+  display: block;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #d63031;
+}
+
+/* 案例内容区域 */
+.case-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 演示区域 */
+.demo-section {
+  margin-bottom: 40px;
+}
+
+.demo-controls,
+.demo-buttons,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-secondary,
+.btn-default {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover,
+.btn-default:hover {
+  background-color: #5a6268;
+}
+
+/* 结果展示区域 */
+.result-section {
+  margin: 20px 0;
+}
+
+.result-card {
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.result-card.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.result-card.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.result-item {
+  margin-bottom: 10px;
+}
+
+/* 控制台区域 */
+.console-section {
+  margin-top: 30px;
+}
+
+.console,
+.console-content {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.console-log,
+.log-item {
+  margin-bottom: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+}
+
+/* 代码展示区域 */
+.code-section {
+  margin: 40px 0;
+}
+
+.code-tabs,
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab button,
+.tab-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  margin-right: 5px;
+  transition: background-color 0.3s;
+}
+
+.tab button.active,
+.tab-btn.active {
+  background: white;
+  border-bottom: 1px solid white;
+  font-weight: bold;
+}
+
+.code-content {
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 4px;
+  overflow: auto;
+}
+
+.code-content pre,
+pre code {
+  margin: 0;
+  padding: 20px;
+  background: #f8f9fa;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 解决方案区域 */
+.solution-section {
+  margin-top: 40px;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.solution-section ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.solution-section li {
+  margin-bottom: 10px;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* 统计网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.stat-item {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 提示区域 */
+.security-tips {
+  margin: 30px 0;
+  padding: 20px;
+  background: #e3f2fd;
+  border-radius: 8px;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 案例主页面样式 */
+.examples-container,
+.js-examples-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 描述文本样式 */
+.description {
+  text-align: center;
+  color: #666;
+  margin-bottom: 40px;
+  font-size: 16px;
+}
+
+/* 案例网格样式 */
+.cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+/* 案例卡片样式 */
+.case-card {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.case-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 案例编号样式 */
+.case-number {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 48px;
+  font-weight: bold;
+  color: rgba(0, 123, 255, 0.1);
+}
+
+/* 案例图标样式 */
+.case-icon {
+  width: 60px;
+  height: 60px;
+  background: #f0f8ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #007bff;
+}
+
+/* 案例卡片标题 */
+.case-card h2,
+.case-card h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.case-card h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+/* 案例卡片描述 */
+.case-card p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 案例标签样式 */
+.case-tag,
+.case-badge {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.case-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .cases-grid {
+    grid-template-columns: 1fr;
+  }
+}

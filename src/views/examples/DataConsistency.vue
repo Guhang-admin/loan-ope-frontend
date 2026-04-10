@@ -7,16 +7,16 @@
       </button>
       <h1>第2期：数据不一致 - 分布式事务和缓存一致性问题</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
       <p>用户在进行金融操作时，出现账户余额与交易记录不一致的情况，如账户余额减少了但交易记录未生成，或交易记录生成了但账户余额未更新。</p>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
+
         <div class="transfer-form">
           <div class="form-group">
             <label>转出用户ID：</label>
@@ -31,20 +31,20 @@
             <input type="number" v-model="amount" placeholder="请输入金额" step="0.01">
           </div>
           <div class="form-actions">
-            <button @click="transferWithoutTransaction" class="btn btn-danger">
+            <button @click="transferWithoutTransaction" :class="buttonTypes.danger.class">
               无事务转账
             </button>
-            <button @click="transferWithTransaction" class="btn btn-success">
+            <button @click="transferWithTransaction" :class="buttonTypes.success.class">
               有事务转账
             </button>
           </div>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="resultStatus[result.status].class">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
@@ -61,30 +61,32 @@
           </div>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        
+
         <div class="code-tabs">
           <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
+            <button
+              v-for="(config, key) in tabConfigs"
+              :key="key"
+              @click="switchTab(key)"
+              :class="{ active: activeTab === key }"
+            >
+              {{ config.icon }} {{ config.label }}
             </button>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'error'">
             <pre><code>{{ errorCode }}</code></pre>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'fixed'">
             <pre><code>{{ fixedCode }}</code></pre>
           </div>
         </div>
       </div>
-      
+
       <div class="solution-section">
         <h2>解决方案</h2>
         <ul>
@@ -100,103 +102,144 @@
 
 <script>
 import api from '../../api/api';
+import { exampleMixin, exampleStyles, validators } from '../../utils/exampleMixin';
 
 export default {
   name: 'DataConsistencyExample',
+  mixins: [exampleMixin],
   data() {
     return {
       fromUserId: 1,
       toUserId: 2,
       amount: 100,
-      result: null,
-      activeTab: 'error',
-      errorCode: `public void transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
-    try {
-        // 1. 扣减转出账户余额
-        User fromUser = userRepository.findById(fromUserId);
-        fromUser.setBalance(fromUser.getBalance().subtract(amount));
-        userRepository.update(fromUser);
+      errorCode: `@Service
+public class TransferService {
+    @Autowired
+    private AccountDao accountDao;
+    @Autowired
+    private TransactionDao transactionDao;
+
+    // 问题：没有事务管理
+    public void transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
+        // 扣除转出账户余额
+        accountDao.decreaseBalance(fromUserId, amount);
         
-        // 2. 增加转入账户余额
-        User toUser = userRepository.findById(toUserId);
-        toUser.setBalance(toUser.getBalance().add(amount));
-        userRepository.update(toUser);
+        // 模拟异常
+        if (Math.random() > 0.5) {
+            throw new RuntimeException("模拟转账过程中的异常");
+        }
         
-        // 3. 创建交易记录
-        Transaction transaction = new Transaction();
-        transaction.setFromUserId(fromUserId);
-        transaction.setToUserId(toUserId);
-        transaction.setAmount(amount);
-        transaction.setStatus("SUCCESS");
-        transactionRepository.save(transaction);
-    } catch (Exception e) {
-        logger.error("Transfer error", e);
-        // 问题：没有事务回滚，部分操作已执行
+        // 增加转入账户余额
+        accountDao.increaseBalance(toUserId, amount);
+        
+        // 记录交易
+        transactionDao.createTransaction(fromUserId, toUserId, amount);
     }
 }`,
-      fixedCode: `@Transactional
-public void transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
-    try {
-        // 1. 扣减转出账户余额
-        User fromUser = userRepository.findById(fromUserId);
-        if (fromUser.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientBalanceException("Insufficient balance");
+      fixedCode: `@Service
+public class TransferService {
+    @Autowired
+    private AccountDao accountDao;
+    @Autowired
+    private TransactionDao transactionDao;
+
+    // 解决方案：使用事务管理
+    @Transactional(rollbackFor = Exception.class)
+    public void transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
+        // 业务校验
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("转账金额必须大于0");
         }
-        fromUser.setBalance(fromUser.getBalance().subtract(amount));
-        userRepository.update(fromUser);
         
-        // 2. 增加转入账户余额
-        User toUser = userRepository.findById(toUserId);
-        toUser.setBalance(toUser.getBalance().add(amount));
-        userRepository.update(toUser);
+        // 检查余额
+        BigDecimal balance = accountDao.getBalance(fromUserId);
+        if (balance.compareTo(amount) < 0) {
+            throw new IllegalArgumentException("余额不足");
+        }
         
-        // 3. 创建交易记录
-        Transaction transaction = new Transaction();
-        transaction.setFromUserId(fromUserId);
-        transaction.setToUserId(toUserId);
-        transaction.setAmount(amount);
-        transaction.setStatus("SUCCESS");
-        transactionRepository.save(transaction);
-    } catch (Exception e) {
-        logger.error("Transfer error", e);
-        // 事务会自动回滚
-        throw new TransferException("Transfer failed", e);
+        // 扣除转出账户余额
+        accountDao.decreaseBalance(fromUserId, amount);
+        
+        // 模拟异常
+        if (Math.random() > 0.5) {
+            throw new RuntimeException("模拟转账过程中的异常");
+        }
+        
+        // 增加转入账户余额
+        accountDao.increaseBalance(toUserId, amount);
+        
+        // 记录交易
+        transactionDao.createTransaction(fromUserId, toUserId, amount);
     }
-}`
+}`,
+      buttonTypes: exampleStyles.buttonTypes,
+      resultStatus: exampleStyles.resultStatus,
+      tabConfigs: {
+        error: exampleStyles.tabs.error,
+        fixed: exampleStyles.tabs.fixed
+      }
     };
   },
   methods: {
-    goBack() {
-      this.$router.push('/');
-    },
     async transferWithoutTransaction() {
       try {
-        this.result = await api.examples.dataconsistency.transfer(
-          this.fromUserId, 
-          this.toUserId, 
-          this.amount
-        );
+        this.clearResult();
+        this.log('开始无事务转账...');
+        
+        // 验证输入
+        const validationErrors = [];
+        validationErrors.push(validators.required(this.fromUserId, '转出用户ID'));
+        validationErrors.push(validators.required(this.toUserId, '转入用户ID'));
+        validationErrors.push(validators.required(this.amount, '转账金额'));
+        validationErrors.push(validators.isPositive(this.amount, '转账金额'));
+        
+        const errors = validationErrors.filter(Boolean);
+        if (errors.length > 0) {
+          this.setErrorResult('验证失败', errors.join('\n'));
+          return;
+        }
+        
+        const response = await api.examples.dataconsistency.transferWithoutTransaction({
+          fromUserId: this.fromUserId,
+          toUserId: this.toUserId,
+          amount: this.amount
+        });
+        this.result = response;
+        this.log('无事务转账完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async transferWithTransaction() {
       try {
-        this.result = await api.examples.dataconsistency.transferFixed(
-          this.fromUserId, 
-          this.toUserId, 
-          this.amount
-        );
+        this.clearResult();
+        this.log('开始有事务转账...');
+        
+        // 验证输入
+        const validationErrors = [];
+        validationErrors.push(validators.required(this.fromUserId, '转出用户ID'));
+        validationErrors.push(validators.required(this.toUserId, '转入用户ID'));
+        validationErrors.push(validators.required(this.amount, '转账金额'));
+        validationErrors.push(validators.isPositive(this.amount, '转账金额'));
+        
+        const errors = validationErrors.filter(Boolean);
+        if (errors.length > 0) {
+          this.setErrorResult('验证失败', errors.join('\n'));
+          return;
+        }
+        
+        const response = await api.examples.dataconsistency.transferWithTransaction({
+          fromUserId: this.fromUserId,
+          toUserId: this.toUserId,
+          amount: this.amount
+        });
+        this.result = response;
+        this.log('有事务转账完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     }
   }
@@ -204,191 +247,17 @@ public void transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
 </script>
 
 <style scoped>
+/* 只保留组件特有的样式，通用样式已移至 common.css */
 .dataconsistency-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.demo-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
 .transfer-form {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
   margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: inline-block;
-  width: 120px;
-  font-weight: 500;
-}
-
-.form-group input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 200px;
-}
-
-.form-actions {
-  margin-top: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-success {
-  background: #28a745;
-  color: white;
-}
-
-.result-section {
-  margin-top: 20px;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-}
-
-.result-card.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.code-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.code-tabs {
-  margin-top: 20px;
-}
-
-.tab {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.tab button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-}
-
-.tab button.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.solution-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.solution-section ul {
-  margin-top: 10px;
-  padding-left: 20px;
-}
-
-.solution-section li {
-  margin-bottom: 10px;
 }
 </style>

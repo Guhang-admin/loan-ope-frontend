@@ -1,103 +1,89 @@
 <template>
-  <div class="example-container">
+  <div class="memoryleak-container">
     <div class="header">
       <button class="back-btn" @click="goBack">
         <i class="back-icon">🏠</i>
         <span>返回主页面</span>
       </button>
-      <h1>第3期：内存异常 - 内存泄漏和内存溢出问题分析</h1>
+      <h1>第3期：内存异常 - 内存泄漏问题</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
-      <p>系统在运行一段时间后，出现内存占用持续增长，最终导致系统响应缓慢、频繁的 Full GC 甚至内存溢出错误 (OOM)。</p>
+      <p>系统运行一段时间后，内存使用量持续增长，最终导致 OOM (Out Of Memory) 错误。</p>
       <div class="error-message">
         <strong>错误信息：</strong>
         <code>java.lang.OutOfMemoryError: Java heap space</code>
       </div>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
-        <div class="cache-form">
-          <div class="form-group">
-            <label>数据ID：</label>
-            <input type="number" v-model="dataId" placeholder="请输入ID">
-          </div>
-          <div class="form-group">
-            <label>数据内容：</label>
-            <input type="text" v-model="dataContent" placeholder="请输入数据内容">
-          </div>
-          <div class="form-actions">
-            <button @click="addToCache" class="btn btn-primary">
-              添加到缓存
-            </button>
-            <button @click="getCacheStatus" class="btn btn-info">
-              查看缓存状态
-            </button>
-            <button @click="clearCache" class="btn btn-warning">
-              清理缓存
-            </button>
-          </div>
+
+        <div class="demo-buttons">
+          <button @click="simulateMemoryLeak" :class="buttonTypes.danger.class">
+            模拟内存泄漏
+          </button>
+          <button @click="fixedMemoryLeak" :class="buttonTypes.success.class">
+            修复内存泄漏
+          </button>
+          <button @click="clearMemory" :class="buttonTypes.secondary.class">
+            清理内存
+          </button>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="resultStatus[result.status].class">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
             </div>
-            <div class="result-item" v-if="result.cacheSize">
-              <strong>缓存大小：</strong>{{ result.cacheSize }}
+            <div class="result-item" v-if="result.memoryUsage">
+              <strong>内存使用：</strong>{{ result.memoryUsage }}
             </div>
-            <div class="result-item" v-if="result.warning">
-              <strong>警告：</strong>{{ result.warning }}
-            </div>
-            <div class="result-item" v-if="result.info">
-              <strong>提示：</strong>{{ result.info }}
-            </div>
-            <div class="result-item" v-if="result.error">
-              <strong>错误：</strong>{{ result.error }}
+            <div class="result-item" v-if="result.objectCount">
+              <strong>对象数量：</strong>{{ result.objectCount }}
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        
+
         <div class="code-tabs">
           <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
+            <button
+              v-for="(config, key) in tabConfigs"
+              :key="key"
+              @click="switchTab(key)"
+              :class="{ active: activeTab === key }"
+            >
+              {{ config.icon }} {{ config.label }}
             </button>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'error'">
             <pre><code>{{ errorCode }}</code></pre>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'fixed'">
             <pre><code>{{ fixedCode }}</code></pre>
           </div>
         </div>
       </div>
-      
+
       <div class="solution-section">
         <h2>解决方案</h2>
         <ul>
-          <li><strong>实现缓存过期机制：</strong>定期清理不再使用的对象</li>
-          <li><strong>使用弱引用或软引用：</strong>允许垃圾回收器在内存不足时回收对象</li>
-          <li><strong>及时释放资源：</strong>关闭流、数据库连接等资源</li>
-          <li><strong>JVM 参数调优：</strong>合理设置堆内存大小，选择合适的垃圾收集器</li>
+          <li><strong>正确关闭资源：</strong>使用 try-with-resources 或在 finally 块中关闭资源</li>
+          <li><strong>避免内存泄漏：</strong>注意缓存大小、避免循环引用、及时清理监听器</li>
+          <li><strong>使用弱引用：</strong>对缓存等使用 WeakHashMap 等弱引用集合</li>
+          <li><strong>内存监控：</strong>设置内存使用阈值，配置自动告警</li>
         </ul>
       </div>
     </div>
@@ -106,111 +92,130 @@
 
 <script>
 import api from '../../api/api';
+import { exampleMixin, exampleStyles } from '../../utils/exampleMixin';
 
 export default {
   name: 'MemoryLeakExample',
+  mixins: [exampleMixin],
   data() {
     return {
-      dataId: 1,
-      dataContent: '测试数据',
-      result: null,
-      activeTab: 'error',
-      errorCode: `public static class BadUserCache {
-    // 问题：静态集合导致内存泄漏
-    private static final Map<Long, User> userCache = new ConcurrentHashMap<>();
+      errorCode: `public class MemoryLeakDemo {
+    // 静态集合，持有对象引用
+    private static List<User> userCache = new ArrayList<>();
     
     public void addUser(User user) {
-        userCache.put(user.getId(), user);
+        userCache.add(user);
+        // 问题：对象添加到静态集合后，即使不再使用也不会被垃圾回收
     }
     
-    public User getUser(Long id) {
-        return userCache.get(id);
+    public void processData() {
+        // 大对象创建
+        byte[] data = new byte[1024 * 1024 * 100]; // 100MB
+        // 处理数据...
+        // 问题：方法执行完毕后，data 变量作用域结束，但可能被其他引用持有
     }
     
-    // 问题：没有清理机制
-    public void clear() {
-        // 空实现
+    public void registerListener() {
+        EventListener listener = new EventListener() {
+            @Override
+            public void onEvent(Event event) {
+                // 处理事件
+            }
+        };
+        EventBus.register(listener);
+        // 问题：注册监听器后没有取消注册，可能导致内存泄漏
     }
 }`,
-      fixedCode: `public static class GoodUserCache {
-    private final Map<Long, User> userCache = new ConcurrentHashMap<>();
-    private final Map<Long, Long> lastAccessTime = new ConcurrentHashMap<>();
-    private static final long EXPIRY_TIME = 3600000; // 1小时
+      fixedCode: `public class MemoryLeakFixed {
+    // 使用弱引用集合
+    private static Map<Long, WeakReference<User>> userCache = new WeakHashMap<>();
     
     public void addUser(User user) {
-        userCache.put(user.getId(), user);
-        lastAccessTime.put(user.getId(), System.currentTimeMillis());
+        userCache.put(user.getId(), new WeakReference<>(user));
+        // 解决方案：使用弱引用，当对象不再被其他地方引用时可以被垃圾回收
     }
     
-    public User getUser(Long id) {
-        User user = userCache.get(id);
-        if (user != null) {
-            lastAccessTime.put(id, System.currentTimeMillis());
+    public void processData() {
+        {
+            // 大对象创建，限制作用域
+            byte[] data = new byte[1024 * 1024 * 100]; // 100MB
+            // 处理数据...
         }
-        return user;
+        // 解决方案：限制变量作用域，方法执行完毕后对象可以被垃圾回收
+        System.gc(); // 提示垃圾回收
     }
     
-    // 定期清理过期数据
-    public void cleanup() {
-        long now = System.currentTimeMillis();
-        List<Long> toRemove = new ArrayList<>();
-        for (Map.Entry<Long, Long> entry : lastAccessTime.entrySet()) {
-            if (now - entry.getValue() > EXPIRY_TIME) {
-                toRemove.add(entry.getKey());
+    private EventListener listener;
+    
+    public void registerListener() {
+        listener = new EventListener() {
+            @Override
+            public void onEvent(Event event) {
+                // 处理事件
             }
-        }
-        for (Long id : toRemove) {
-            userCache.remove(id);
-            lastAccessTime.remove(id);
-        }
+        };
+        EventBus.register(listener);
     }
     
-    public void clear() {
-        userCache.clear();
-        lastAccessTime.clear();
+    public void unregisterListener() {
+        if (listener != null) {
+            EventBus.unregister(listener);
+            listener = null;
+        }
+        // 解决方案：提供取消注册的方法，在适当的时候调用
     }
-}`
+    
+    @Override
+    protected void finalize() throws Throwable {
+        unregisterListener();
+        super.finalize();
+    }
+}`,
+      buttonTypes: exampleStyles.buttonTypes,
+      resultStatus: exampleStyles.resultStatus,
+      tabConfigs: {
+        error: exampleStyles.tabs.error,
+        fixed: exampleStyles.tabs.fixed
+      }
     };
   },
   methods: {
-    goBack() {
-      this.$router.push('/');
-    },
-    async addToCache() {
+    async simulateMemoryLeak() {
       try {
-        this.result = await api.examples.memoryleak.addToCache(
-          this.dataId, 
-          this.dataContent
-        );
-        this.dataId++;
+        this.clearResult();
+        this.log('开始模拟内存泄漏...');
+        const response = await api.examples.memoryleak.simulateLeak();
+        this.result = response;
+        this.log('内存泄漏模拟完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
-    async getCacheStatus() {
+
+    async fixedMemoryLeak() {
       try {
-        this.result = await api.examples.memoryleak.getCacheStatus();
+        this.clearResult();
+        this.log('开始修复内存泄漏...');
+        const response = await api.examples.memoryleak.fixedLeak();
+        this.result = response;
+        this.log('内存泄漏修复完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
-    async clearCache() {
+
+    async clearMemory() {
       try {
-        this.result = await api.examples.memoryleak.clearCache();
+        this.clearResult();
+        this.log('开始清理内存...');
+        const response = await api.examples.memoryleak.clearMemory();
+        this.result = response;
+        this.log('内存清理完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     }
   }
@@ -218,211 +223,10 @@ export default {
 </script>
 
 <style scoped>
-.example-container {
+/* 只保留组件特有的样式，通用样式已移至 common.css */
+.memoryleak-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.error-message {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.error-message code {
-  display: block;
-  white-space: pre-wrap;
-  margin-top: 5px;
-}
-
-.demo-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.cache-form {
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: inline-block;
-  width: 100px;
-  font-weight: 500;
-}
-
-.form-group input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 200px;
-}
-
-.form-actions {
-  margin-top: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-info {
-  background: #17a2b8;
-  color: white;
-}
-
-.btn-warning {
-  background: #ffc107;
-  color: #212529;
-}
-
-.result-section {
-  margin-top: 20px;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-}
-
-.result-card.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.code-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.code-tabs {
-  margin-top: 20px;
-}
-
-.tab {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.tab button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-}
-
-.tab button.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.solution-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.solution-section ul {
-  margin-top: 10px;
-  padding-left: 20px;
-}
-
-.solution-section li {
-  margin-bottom: 10px;
 }
 </style>

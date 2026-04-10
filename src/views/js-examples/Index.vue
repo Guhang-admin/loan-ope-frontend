@@ -66,117 +66,15 @@ export default {
 </script>
 
 <style scoped>
-.js-examples-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.description {
-  text-align: center;
-  color: #666;
-  margin-bottom: 40px;
-  font-size: 16px;
-}
-
-.cases-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  margin-top: 40px;
-}
-
-.case-card {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* 只保留组件特有的样式，通用样式已移至 common.css */
+.js-examples-container .case-card {
   border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.case-card:hover {
-  transform: translateY(-5px);
+.js-examples-container .case-card:hover {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   border-color: #007bff;
-}
-
-.case-icon {
-  width: 60px;
-  height: 60px;
-  background: #f0f8ff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #007bff;
-}
-
-.case-card h2 {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.case-card p {
-  color: #666;
-  margin-bottom: 20px;
-  line-height: 1.5;
-  font-size: 14px;
-}
-
-.case-badge {
-  display: inline-block;
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-@media (max-width: 768px) {
-  .cases-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

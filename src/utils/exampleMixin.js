@@ -1,0 +1,230 @@
+// 案例页面共用方法和数据混入
+
+export const exampleMixin = {
+  data() {
+    return {
+      result: null,
+      activeTab: 'error',
+      consoleLogs: []
+    }
+  },
+
+  methods: {
+    // 返回主页面
+    goBack() {
+      this.$router.push('/')
+    },
+
+    // 返回案例首页
+    goBackToExamples() {
+      this.$router.push('/examples')
+    },
+
+    // 返回 JavaScript 案例首页
+    goBackToJSExamples() {
+      this.$router.push('/js-examples')
+    },
+
+    // 添加控制台日志
+    log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString()
+      const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`
+      this.consoleLogs.push(logEntry)
+      // 限制日志数量
+      if (this.consoleLogs.length > 50) {
+        this.consoleLogs.shift()
+      }
+    },
+
+    // 清空控制台
+    clearConsole() {
+      this.consoleLogs = []
+    },
+
+    // 设置成功结果
+    setSuccessResult(message, detail = null, extraData = {}) {
+      this.result = {
+        status: 'success',
+        message,
+        detail,
+        ...extraData
+      }
+    },
+
+    // 设置错误结果
+    setErrorResult(message, detail = null, extraData = {}) {
+      this.result = {
+        status: 'error',
+        message,
+        detail,
+        ...extraData
+      }
+    },
+
+    // 清空结果
+    clearResult() {
+      this.result = null
+    },
+
+    // 切换标签页
+    switchTab(tabName) {
+      this.activeTab = tabName
+    },
+
+    // 模拟异步延迟
+    async delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
+    },
+
+    // 格式化时间
+    formatTime(date) {
+      return new Date(date).toLocaleString('zh-CN')
+    },
+
+    // 格式化数字
+    formatNumber(num, decimals = 2) {
+      return Number(num).toFixed(decimals)
+    },
+
+    // 生成唯一ID
+    generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2)
+    }
+  }
+}
+
+// 案例页面共用样式配置
+export const exampleStyles = {
+  // 按钮类型配置
+  buttonTypes: {
+    danger: { class: 'btn btn-danger', label: '错误示例' },
+    success: { class: 'btn btn-success', label: '正确示例' },
+    secondary: { class: 'btn btn-secondary', label: '辅助操作' },
+    default: { class: 'btn btn-default', label: '默认操作' }
+  },
+
+  // 结果状态配置
+  resultStatus: {
+    success: { class: 'success', icon: '✓', label: '成功' },
+    error: { class: 'error', icon: '✗', label: '失败' },
+    warning: { class: 'warning', icon: '⚠', label: '警告' },
+    info: { class: 'info', icon: 'ℹ', label: '信息' }
+  },
+
+  // 标签页配置
+  tabs: {
+    error: { label: '错误代码', icon: '✗' },
+    fixed: { label: '正确代码', icon: '✓' },
+    analysis: { label: '分析', icon: '🔍' },
+    solution: { label: '解决方案', icon: '💡' }
+  }
+}
+
+// 常用验证函数
+export const validators = {
+  // 验证必填
+  required(value, fieldName = '字段') {
+    if (value === null || value === undefined || value === '') {
+      return `${fieldName}不能为空`
+    }
+    return null
+  },
+
+  // 验证数字
+  isNumber(value, fieldName = '字段') {
+    if (isNaN(Number(value))) {
+      return `${fieldName}必须是数字`
+    }
+    return null
+  },
+
+  // 验证正数
+  isPositive(value, fieldName = '字段') {
+    if (Number(value) <= 0) {
+      return `${fieldName}必须大于0`
+    }
+    return null
+  },
+
+  // 验证整数
+  isInteger(value, fieldName = '字段') {
+    if (!Number.isInteger(Number(value))) {
+      return `${fieldName}必须是整数`
+    }
+    return null
+  },
+
+  // 验证范围
+  inRange(value, min, max, fieldName = '字段') {
+    const num = Number(value)
+    if (num < min || num > max) {
+      return `${fieldName}必须在 ${min} 和 ${max} 之间`
+    }
+    return null
+  }
+}
+
+// 性能监控工具
+export const performanceMonitor = {
+  marks: {},
+
+  // 开始计时
+  start(label) {
+    this.marks[label] = performance.now()
+  },
+
+  // 结束计时
+  end(label) {
+    if (this.marks[label]) {
+      const duration = performance.now() - this.marks[label]
+      delete this.marks[label]
+      return duration
+    }
+    return 0
+  },
+
+  // 测量函数执行时间
+  async measure(fn, label) {
+    this.start(label)
+    try {
+      const result = await fn()
+      const duration = this.end(label)
+      return { result, duration }
+    } catch (error) {
+      this.end(label)
+      throw error
+    }
+  }
+}
+
+// 内存监控工具
+export const memoryMonitor = {
+  // 获取内存信息
+  getMemoryInfo() {
+    if (performance && performance.memory) {
+      return {
+        used: performance.memory.usedJSHeapSize,
+        total: performance.memory.totalJSHeapSize,
+        limit: performance.memory.jsHeapSizeLimit
+      }
+    }
+    return null
+  },
+
+  // 格式化内存大小
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+}
+
+export default {
+  exampleMixin,
+  exampleStyles,
+  validators,
+  performanceMonitor,
+  memoryMonitor
+}

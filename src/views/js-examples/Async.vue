@@ -7,42 +7,42 @@
       </button>
       <h1>第1期：异步操作陷阱</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
       <p>在处理多个异步操作时，容易出现回调地狱、Promise 链使用不当、并行操作串行化等问题，导致代码难以维护和性能下降。</p>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
+
         <div class="demo-buttons">
-          <button @click="testCallbackHell" class="btn btn-danger">
+          <button @click="testCallbackHell" :class="buttonTypes.danger.class">
             测试回调地狱
           </button>
-          <button @click="testBadPromiseChain" class="btn btn-danger">
+          <button @click="testBadPromiseChain" :class="buttonTypes.danger.class">
             测试 Promise 链错误
           </button>
-          <button @click="testSequentialParallel" class="btn btn-danger">
+          <button @click="testSequentialParallel" :class="buttonTypes.danger.class">
             测试串行并行
           </button>
-          <button @click="testPromiseChain" class="btn btn-success">
+          <button @click="testPromiseChain" :class="buttonTypes.success.class">
             测试 Promise 链正确
           </button>
-          <button @click="testAsyncAwait" class="btn btn-success">
+          <button @click="testAsyncAwait" :class="buttonTypes.success.class">
             测试 Async/Await
           </button>
-          <button @click="testParallelOperation" class="btn btn-success">
+          <button @click="testParallelOperation" :class="buttonTypes.success.class">
             测试并行操作
           </button>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="resultStatus[result.status].class">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
@@ -52,7 +52,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="console-section">
           <h3>控制台输出</h3>
           <div class="console">
@@ -60,35 +60,37 @@
               {{ log }}
             </div>
           </div>
-          <button @click="clearConsole" class="btn btn-secondary">
+          <button @click="clearConsole" :class="buttonTypes.secondary.class">
             清空控制台
           </button>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        
+
         <div class="code-tabs">
           <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
+            <button
+              v-for="(config, key) in tabConfigs"
+              :key="key"
+              @click="switchTab(key)"
+              :class="{ active: activeTab === key }"
+            >
+              {{ config.icon }} {{ config.label }}
             </button>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'error'">
             <pre><code>{{ errorCode }}</code></pre>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'fixed'">
             <pre><code>{{ fixedCode }}</code></pre>
           </div>
         </div>
       </div>
-      
+
       <div class="solution-section">
         <h2>解决方案</h2>
         <ul>
@@ -103,263 +105,292 @@
 </template>
 
 <script>
-import { badAsyncExample, goodAsyncExample } from '../../examples/AsyncExample';
+import api from '../../api/api';
+import { exampleMixin, exampleStyles, performanceMonitor } from '../../utils/exampleMixin';
 
 export default {
   name: 'AsyncExample',
+  mixins: [exampleMixin],
   data() {
     return {
-      result: null,
-      consoleLogs: [],
-      activeTab: 'error',
-      errorCode: `// 回调地狱
-function callbackHell() {
+      errorCode: `// 1. 回调地狱
+function fetchUserData(userId, callback) {
   setTimeout(() => {
-    console.log('Step 1');
-    setTimeout(() => {
-      console.log('Step 2');
-      setTimeout(() => {
-        console.log('Step 3');
-        setTimeout(() => {
-          console.log('Step 4');
-        }, 1000);
-      }, 1000);
-    }, 1000);
+    callback({ id: userId, name: 'User' + userId });
   }, 1000);
 }
 
-// Promise 链使用不当
-function badPromiseChain() {
-  return new Promise(resolve => {
+function fetchUserPosts(userId, callback) {
+  setTimeout(() => {
+    callback([{ id: 1, title: 'Post 1' }, { id: 2, title: 'Post 2' }]);
+  }, 1000);
+}
+
+function fetchPostComments(postId, callback) {
+  setTimeout(() => {
+    callback([{ id: 1, content: 'Comment 1' }, { id: 2, content: 'Comment 2' }]);
+  }, 1000);
+}
+
+// 回调地狱
+fetchUserData(1, (user) => {
+  console.log('User:', user);
+  fetchUserPosts(user.id, (posts) => {
+    console.log('Posts:', posts);
+    fetchPostComments(posts[0].id, (comments) => {
+      console.log('Comments:', comments);
+    });
+  });
+});
+
+// 2. Promise 链错误使用
+function fetchData() {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
-      resolve('Result 1');
+      resolve('Data');
     }, 1000);
-  })
-  .then(result => {
-    console.log('Result 1:', result);
-    // 错误：没有 return Promise
-    setTimeout(() => {
-      return 'Result 2'; // 这个返回值不会被传递
-    }, 1000);
-  })
-  .then(result => {
-    console.log('Result 2:', result); // 这里会是 undefined
   });
 }
 
-// 并行操作串行化
-function sequentialParallel() {
-  const promises = [
-    new Promise(resolve => setTimeout(() => resolve('A'), 1000)),
-    new Promise(resolve => setTimeout(() => resolve('B'), 1000)),
-    new Promise(resolve => setTimeout(() => resolve('C'), 1000))
-  ];
+// 错误：没有返回 Promise
+fetchData()
+  .then(data => {
+    console.log(data);
+    // 没有 return，导致后续 then 接收 undefined
+  })
+  .then(result => {
+    console.log('Result:', result); // 输出 undefined
+  });
 
-  // 错误：串行执行，总时间 3 秒
-  return promises[0]
-    .then(result => {
-      console.log('Result A:', result);
-      return promises[1];
-    })
-    .then(result => {
-      console.log('Result B:', result);
-      return promises[2];
-    });
+// 3. 串行执行并行操作
+async function sequentialOperations() {
+  const data1 = await fetchData();
+  const data2 = await fetchData();
+  const data3 = await fetchData();
+  console.log('Total time:', 3000); // 实际耗时约 3000ms
 }`,
-      fixedCode: `// 使用 Promise 链
-function promiseChain() {
+      fixedCode: `// 1. 使用 Promise 链
+function fetchUserData(userId) {
   return new Promise(resolve => {
     setTimeout(() => {
-      console.log('Step 1');
-      resolve('Step 1 completed');
+      resolve({ id: userId, name: 'User' + userId });
     }, 1000);
-  })
-  .then(result => {
-    console.log('Result 1:', result);
-    return new Promise(resolve => {
-      setTimeout(() => {
-        console.log('Step 2');
-        resolve('Step 2 completed');
-      }, 1000);
-    });
-  })
-  .then(result => {
-    console.log('Result 2:', result);
-    return 'Promise chain completed';
   });
 }
 
-// 使用 async/await
-async function asyncAwait() {
-  await new Promise(resolve => setTimeout(() => {
-    console.log('Step 1');
-    resolve();
-  }, 1000));
-  
-  await new Promise(resolve => setTimeout(() => {
-    console.log('Step 2');
-    resolve();
-  }, 1000));
-  
-  console.log('Async/await completed');
-  return 'Async/await completed';
+function fetchUserPosts(userId) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve([{ id: 1, title: 'Post 1' }, { id: 2, title: 'Post 2' }]);
+    }, 1000);
+  });
 }
 
-// 并行操作
-function parallelOperation() {
-  const promises = [
-    new Promise(resolve => setTimeout(() => resolve('A'), 1000)),
-    new Promise(resolve => setTimeout(() => resolve('B'), 1000)),
-    new Promise(resolve => setTimeout(() => resolve('C'), 1000))
-  ];
+function fetchPostComments(postId) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve([{ id: 1, content: 'Comment 1' }, { id: 2, content: 'Comment 2' }]);
+    }, 1000);
+  });
+}
 
-  // 正确：并行执行，总时间 1 秒
-  return Promise.all(promises)
-    .then(results => {
-      console.log('All results:', results);
-      return 'Parallel completed';
-    });
-}`
+// 使用 Promise 链
+fetchUserData(1)
+  .then(user => {
+    console.log('User:', user);
+    return fetchUserPosts(user.id);
+  })
+  .then(posts => {
+    console.log('Posts:', posts);
+    return fetchPostComments(posts[0].id);
+  })
+  .then(comments => {
+    console.log('Comments:', comments);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+// 2. 正确使用 Promise 链
+function fetchData() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve('Data');
+    }, 1000);
+  });
+}
+
+// 正确：返回 Promise
+fetchData()
+  .then(data => {
+    console.log(data);
+    return data + ' processed'; // 返回值会传递给下一个 then
+  })
+  .then(result => {
+    console.log('Result:', result); // 输出 "Data processed"
+  });
+
+// 3. 并行执行操作
+async function parallelOperations() {
+  const [data1, data2, data3] = await Promise.all([
+    fetchData(),
+    fetchData(),
+    fetchData()
+  ]);
+  console.log('Total time:', 1000); // 实际耗时约 1000ms
+}
+
+// 4. 使用 async/await
+async function asyncAwaitExample() {
+  try {
+    const user = await fetchUserData(1);
+    const posts = await fetchUserPosts(user.id);
+    const comments = await fetchPostComments(posts[0].id);
+    console.log('User:', user);
+    console.log('Posts:', posts);
+    console.log('Comments:', comments);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}`,
+      buttonTypes: exampleStyles.buttonTypes,
+      resultStatus: exampleStyles.resultStatus,
+      tabConfigs: {
+        error: exampleStyles.tabs.error,
+        fixed: exampleStyles.tabs.fixed
+      }
     };
   },
   methods: {
-    goBack() {
-      this.$router.push('/');
-    },
-    log(message) {
-      this.consoleLogs.push(message);
-      // 限制日志数量
-      if (this.consoleLogs.length > 50) {
-        this.consoleLogs.shift();
-      }
-    },
-    clearConsole() {
-      this.consoleLogs = [];
-    },
     async testCallbackHell() {
-      this.log('开始测试回调地狱...');
-      const start = performance.now();
       try {
-        await badAsyncExample.callbackHell();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试回调地狱...');
+        
+        performanceMonitor.start('callbackHell');
+        const response = await api.jsExamples.async.testCallbackHell();
+        const duration = performanceMonitor.end('callbackHell');
+        
         this.result = {
-          status: 'success',
-          message: '回调地狱执行完成',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('回调地狱执行完成');
+        this.log('回调地狱测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async testBadPromiseChain() {
-      this.log('开始测试 Promise 链错误...');
-      const start = performance.now();
       try {
-        const result = await badAsyncExample.badPromiseChain();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试 Promise 链错误...');
+        
+        performanceMonitor.start('badPromiseChain');
+        const response = await api.jsExamples.async.testBadPromiseChain();
+        const duration = performanceMonitor.end('badPromiseChain');
+        
         this.result = {
-          status: 'success',
-          message: 'Promise 链执行完成，注意查看控制台输出',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('Promise 链执行完成');
+        this.log('Promise 链错误测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async testSequentialParallel() {
-      this.log('开始测试串行并行...');
-      const start = performance.now();
       try {
-        const result = await badAsyncExample.sequentialParallel();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试串行并行...');
+        
+        performanceMonitor.start('sequentialParallel');
+        const response = await api.jsExamples.async.testSequentialParallel();
+        const duration = performanceMonitor.end('sequentialParallel');
+        
         this.result = {
-          status: 'success',
-          message: '串行执行完成，总时间较长',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('串行执行完成，时间:', end - start);
+        this.log('串行并行测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async testPromiseChain() {
-      this.log('开始测试 Promise 链正确...');
-      const start = performance.now();
       try {
-        const result = await goodAsyncExample.promiseChain();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试 Promise 链正确...');
+        
+        performanceMonitor.start('promiseChain');
+        const response = await api.jsExamples.async.testPromiseChain();
+        const duration = performanceMonitor.end('promiseChain');
+        
         this.result = {
-          status: 'success',
-          message: 'Promise 链执行完成',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('Promise 链执行完成');
+        this.log('Promise 链正确测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async testAsyncAwait() {
-      this.log('开始测试 Async/Await...');
-      const start = performance.now();
       try {
-        const result = await goodAsyncExample.asyncAwait();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试 Async/Await...');
+        
+        performanceMonitor.start('asyncAwait');
+        const response = await api.jsExamples.async.testAsyncAwait();
+        const duration = performanceMonitor.end('asyncAwait');
+        
         this.result = {
-          status: 'success',
-          message: 'Async/Await 执行完成',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('Async/Await 执行完成');
+        this.log('Async/Await 测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async testParallelOperation() {
-      this.log('开始测试并行操作...');
-      const start = performance.now();
       try {
-        const result = await goodAsyncExample.parallelOperation();
-        const end = performance.now();
+        this.clearResult();
+        this.clearConsole();
+        this.log('开始测试并行操作...');
+        
+        performanceMonitor.start('parallelOperation');
+        const response = await api.jsExamples.async.testParallelOperation();
+        const duration = performanceMonitor.end('parallelOperation');
+        
         this.result = {
-          status: 'success',
-          message: '并行执行完成，时间较短',
-          time: end - start
+          ...response,
+          time: Math.round(duration)
         };
-        this.log('并行执行完成，时间:', end - start);
+        this.log('并行操作测试完成', response.status);
+        this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '执行失败',
-          error: error.message
-        };
-        this.log('执行失败:', error.message);
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     }
   }
@@ -367,209 +398,10 @@ function parallelOperation() {
 </script>
 
 <style scoped>
+/* 只保留组件特有的样式，通用样式已移至 common.css */
 .async-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.demo-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.demo-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-success {
-  background: #28a745;
-  color: white;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.result-section {
-  margin-top: 20px;
-  margin-bottom: 30px;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-}
-
-.result-card.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.console-section {
-  margin-top: 30px;
-}
-
-.console {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 15px;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
-.log-item {
-  margin-bottom: 5px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-}
-
-.code-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.code-tabs {
-  margin-top: 20px;
-}
-
-.tab {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.tab button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-}
-
-.tab button.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.solution-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.solution-section ul {
-  margin-top: 10px;
-  padding-left: 20px;
-}
-
-.solution-section li {
-  margin-bottom: 10px;
-}
-
-@media (max-width: 768px) {
-  .demo-buttons {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-  }
 }
 </style>

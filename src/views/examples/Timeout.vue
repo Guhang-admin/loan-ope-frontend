@@ -7,7 +7,7 @@
       </button>
       <h1>第1期：神秘超时 - 数据库连接池耗尽导致的超时问题</h1>
     </div>
-    
+
     <div class="case-description">
       <h2>问题描述</h2>
       <p>系统在高并发下出现间歇性超时，表现为数据库连接池耗尽，API响应时间突然变长。</p>
@@ -16,25 +16,25 @@
         <code>java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.</code>
       </div>
     </div>
-    
+
     <div class="case-content">
       <div class="demo-section">
         <h2>演示</h2>
-        
+
         <div class="demo-controls">
-          <button @click="simulateConnectionLeak" class="btn btn-danger">
+          <button @click="simulateConnectionLeak" :class="buttonTypes.danger.class">
             模拟连接泄漏
           </button>
-          <button @click="fixedConnectionLeak" class="btn btn-success">
+          <button @click="fixedConnectionLeak" :class="buttonTypes.success.class">
             正确关闭连接
           </button>
         </div>
-        
+
         <div class="result-section" v-if="result">
           <h3>结果</h3>
-          <div class="result-card" :class="result.status === 'success' ? 'success' : 'error'">
+          <div class="result-card" :class="resultStatus[result.status].class">
             <div class="result-item">
-              <strong>状态：</strong>{{ result.status === 'success' ? '成功' : '失败' }}
+              <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
@@ -51,30 +51,32 @@
           </div>
         </div>
       </div>
-      
+
       <div class="code-section">
         <h2>代码分析</h2>
-        
+
         <div class="code-tabs">
           <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
+            <button
+              v-for="(config, key) in tabConfigs"
+              :key="key"
+              @click="switchTab(key)"
+              :class="{ active: activeTab === key }"
+            >
+              {{ config.icon }} {{ config.label }}
             </button>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'error'">
             <pre><code>{{ errorCode }}</code></pre>
           </div>
-          
+
           <div class="code-content" v-show="activeTab === 'fixed'">
             <pre><code>{{ fixedCode }}</code></pre>
           </div>
         </div>
       </div>
-      
+
       <div class="solution-section">
         <h2>解决方案</h2>
         <ul>
@@ -89,13 +91,13 @@
 
 <script>
 import api from '../../api/api';
+import { exampleMixin, exampleStyles } from '../../utils/exampleMixin';
 
 export default {
   name: 'TimeoutExample',
+  mixins: [exampleMixin],
   data() {
     return {
-      result: null,
-      activeTab: 'error',
       errorCode: `public User getUserById(Long id) {
     Connection conn = null;
     PreparedStatement stmt = null;
@@ -134,33 +136,39 @@ export default {
         logger.error("Database error", e);
     }
     return null;
-}`
+}`,
+      buttonTypes: exampleStyles.buttonTypes,
+      resultStatus: exampleStyles.resultStatus,
+      tabConfigs: {
+        error: exampleStyles.tabs.error,
+        fixed: exampleStyles.tabs.fixed
+      }
     };
   },
   methods: {
-    goBack() {
-      this.$router.push('/');
-    },
     async simulateConnectionLeak() {
       try {
-        this.result = await api.examples.timeout.simulateLeak();
+        this.clearResult();
+        this.log('开始模拟连接泄漏...');
+        const response = await api.examples.timeout.simulateLeak();
+        this.result = response;
+        this.log('连接泄漏模拟完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     },
+
     async fixedConnectionLeak() {
       try {
-        this.result = await api.examples.timeout.fixedLeak();
+        this.clearResult();
+        this.log('开始正确关闭连接...');
+        const response = await api.examples.timeout.fixedLeak();
+        this.result = response;
+        this.log('正确关闭连接完成', response.status);
       } catch (error) {
-        this.result = {
-          status: 'error',
-          message: '操作失败',
-          error: error.message
-        };
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
       }
     }
   }
@@ -168,185 +176,10 @@ export default {
 </script>
 
 <style scoped>
+/* 只保留组件特有的样式，通用样式已移至 common.css */
 .example-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-  background-color: #5568d3;
-}
-
-.back-icon {
-  font-size: 16px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.case-description {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.error-message {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.error-message code {
-  display: block;
-  white-space: pre-wrap;
-  margin-top: 5px;
-}
-
-.demo-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.demo-controls {
-  margin-bottom: 20px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-success {
-  background: #28a745;
-  color: white;
-}
-
-.result-section {
-  margin-top: 20px;
-}
-
-.result-card {
-  padding: 20px;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-.result-card.success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-}
-
-.result-card.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-.result-item {
-  margin-bottom: 10px;
-}
-
-.code-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.code-tabs {
-  margin-top: 20px;
-}
-
-.tab {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.tab button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-}
-
-.tab button.active {
-  background: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-}
-
-.code-content {
-  border: 1px solid #ddd;
-  border-radius: 0 4px 4px 4px;
-  overflow: auto;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.solution-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.solution-section ul {
-  margin-top: 10px;
-  padding-left: 20px;
-}
-
-.solution-section li {
-  margin-bottom: 10px;
 }
 </style>
