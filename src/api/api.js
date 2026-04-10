@@ -99,6 +99,76 @@ const api = {
   getLoanRepaymentRecords: (loanId) => {
     return fetch(`${API_BASE_URL}/repayment-records/loan/${loanId}`)
       .then(handleResponse);
+  },
+
+  // 案例演示接口
+  examples: {
+    // 第1期：神秘超时
+    timeout: {
+      simulateLeak: () => {
+        return fetch(`${API_BASE_URL}/examples/timeout/leak`)
+          .then(handleResponse);
+      },
+      fixedLeak: () => {
+        return fetch(`${API_BASE_URL}/examples/timeout/fixed`)
+          .then(handleResponse);
+      }
+    },
+    
+    // 第2期：数据不一致
+    dataconsistency: {
+      transfer: (fromUserId, toUserId, amount) => {
+        return fetch(`${API_BASE_URL}/examples/dataconsistency/transfer?fromUserId=${fromUserId}&toUserId=${toUserId}&amount=${amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      transferFixed: (fromUserId, toUserId, amount) => {
+        return fetch(`${API_BASE_URL}/examples/dataconsistency/transfer-fixed?fromUserId=${fromUserId}&toUserId=${toUserId}&amount=${amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      }
+    },
+    
+    // 第3期：内存异常
+    memoryleak: {
+      addToCache: (id, data) => {
+        return fetch(`${API_BASE_URL}/examples/memoryleak/add?id=${id}&data=${encodeURIComponent(data)}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      getCacheStatus: () => {
+        return fetch(`${API_BASE_URL}/examples/memoryleak/status`)
+          .then(handleResponse);
+      },
+      clearCache: () => {
+        return fetch(`${API_BASE_URL}/examples/memoryleak/clear`, {
+          method: 'POST'
+        }).then(handleResponse);
+      }
+    },
+    
+    // 第4期：并发陷阱
+    concurrency: {
+      processOrder: (quantity) => {
+        return fetch(`${API_BASE_URL}/examples/concurrency/order?quantity=${quantity}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      processOrderFixed: (quantity) => {
+        return fetch(`${API_BASE_URL}/examples/concurrency/order-fixed?quantity=${quantity}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      getInventory: () => {
+        return fetch(`${API_BASE_URL}/examples/concurrency/inventory`)
+          .then(handleResponse);
+      },
+      resetInventory: () => {
+        return fetch(`${API_BASE_URL}/examples/concurrency/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
+      }
+    }
   }
 };
 
