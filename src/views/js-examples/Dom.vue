@@ -1,6 +1,12 @@
 <template>
   <div class="dom-container">
-    <h1>第3期：DOM 操作性能 - 频繁操作 DOM 导致的性能问题</h1>
+    <div class="header">
+      <button class="back-btn" @click="goBack">
+        <i class="back-icon">🏠</i>
+        <span>返回主页面</span>
+      </button>
+      <h1>第3期：DOM 操作性能 - 频繁操作 DOM 导致的性能问题</h1>
+    </div>
     
     <div class="case-description">
       <h2>问题描述</h2>
@@ -53,35 +59,20 @@
             <div class="result-item" v-if="result.detail">
               <strong>详情：</strong>{{ result.detail }}
             </div>
-          </div>
-        </div>
-        
-        <div class="performance-stats">
-          <h3>性能统计</h3>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <strong>渲染时间：</strong>{{ performanceStats.renderTime }}ms
-            </div>
-            <div class="stat-item">
-              <strong>布局时间：</strong>{{ performanceStats.layoutTime }}ms
-            </div>
-            <div class="stat-item">
-              <strong>重绘时间：</strong>{{ performanceStats.paintTime }}ms
+            <div class="result-item" v-if="result.error">
+              <strong>错误：</strong>{{ result.error }}
             </div>
           </div>
-          <button @click="updatePerformanceStats" class="btn btn-info">
-            更新性能统计
-          </button>
         </div>
         
         <div class="console-section">
-          <h3>控制台输出</h3>
-          <div class="console">
-            <div v-for="(log, index) in consoleLogs" :key="index" class="log-item">
+          <h3>控制台</h3>
+          <div class="console-content">
+            <div v-for="(log, index) in consoleLogs" :key="index" class="console-log">
               {{ log }}
             </div>
           </div>
-          <button @click="clearConsole" class="btn btn-secondary">
+          <button @click="clearConsole" class="btn btn-default">
             清空控制台
           </button>
         </div>
@@ -89,36 +80,41 @@
       
       <div class="code-section">
         <h2>代码分析</h2>
-        
-        <div class="code-tabs">
-          <div class="tab">
-            <button @click="activeTab = 'error'" :class="{ active: activeTab === 'error' }">
-              错误代码
-            </button>
-            <button @click="activeTab = 'fixed'" :class="{ active: activeTab === 'fixed' }">
-              正确代码
-            </button>
-          </div>
-          
-          <div class="code-content" v-show="activeTab === 'error'">
-            <pre><code>{{ errorCode }}</code></pre>
-          </div>
-          
-          <div class="code-content" v-show="activeTab === 'fixed'">
-            <pre><code>{{ fixedCode }}</code></pre>
-          </div>
+        <div class="tabs">
+          <button 
+            @click="activeTab = 'error'" 
+            class="tab-btn" 
+            :class="activeTab === 'error' ? 'active' : ''"
+          >
+            错误代码
+          </button>
+          <button 
+            @click="activeTab = 'fixed'" 
+            class="tab-btn" 
+            :class="activeTab === 'fixed' ? 'active' : ''"
+          >
+            正确代码
+          </button>
+        </div>
+        <div class="code-content">
+          <pre v-if="activeTab === 'error'">{{ errorCode }}</pre>
+          <pre v-else-if="activeTab === 'fixed'">{{ fixedCode }}</pre>
         </div>
       </div>
       
-      <div class="solution-section">
-        <h2>解决方案</h2>
-        <ul>
-          <li><strong>使用文档片段：</strong>减少 DOM 操作次数</li>
-          <li><strong>批量操作：</strong>先批量写入，再批量读取</li>
-          <li><strong>事件委托：</strong>减少事件监听器数量</li>
-          <li><strong>CSS 类：</strong>避免直接修改 style</li>
-          <li><strong>requestAnimationFrame：</strong>优化动画效果</li>
-        </ul>
+      <div class="performance-section">
+        <h2>性能统计</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <strong>渲染时间：</strong>{{ performanceStats.renderTime }}ms
+          </div>
+          <div class="stat-item">
+            <strong>布局时间：</strong>{{ performanceStats.layoutTime }}ms
+          </div>
+          <div class="stat-item">
+            <strong>绘制时间：</strong>{{ performanceStats.paintTime }}ms
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -150,7 +146,7 @@ function frequentDomOperations() {
   // 错误：每次循环都操作 DOM
   for (let i = 0; i < 1000; i++) {
     const element = document.createElement('div');
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     container.appendChild(element); // 每次都触发重排
   }
   
@@ -168,7 +164,7 @@ function frequentLayoutReads() {
   
   for (let i = 0; i < 1000; i++) {
     const element = document.createElement('div');
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     container.appendChild(element);
     
     // 错误：每次都读取布局属性，触发强制同步布局
@@ -189,7 +185,7 @@ function noEventDelegation() {
   // 错误：为每个元素添加事件监听器
   for (let i = 0; i < 100; i++) {
     const li = document.createElement('li');
-    li.textContent = `Item ${i}`;
+    li.textContent = \`Item \${i}\`;
     li.addEventListener('click', function() {
       console.log('Item clicked:', i);
     });
@@ -212,7 +208,7 @@ function directStyleModification() {
     element.style.height = '100px';
     element.style.backgroundColor = 'red';
     element.style.margin = '10px';
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     container.appendChild(element);
   }
   
@@ -231,7 +227,7 @@ function useDocumentFragment() {
   const fragment = document.createDocumentFragment();
   for (let i = 0; i < 1000; i++) {
     const element = document.createElement('div');
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     fragment.appendChild(element); // 先添加到片段
   }
   
@@ -252,7 +248,7 @@ function batchLayoutOperations() {
   // 正确：先批量写入
   for (let i = 0; i < 1000; i++) {
     const element = document.createElement('div');
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     container.appendChild(element);
   }
   
@@ -276,7 +272,7 @@ function useEventDelegation() {
   // 正确：使用事件委托，只添加一个监听器
   for (let i = 0; i < 100; i++) {
     const li = document.createElement('li');
-    li.textContent = `Item ${i}`;
+    li.textContent = \`Item \${i}\`;
     li.dataset.index = i;
     container.appendChild(li);
   }
@@ -295,14 +291,14 @@ function useCssClasses() {
   
   // 先添加样式
   const style = document.createElement('style');
-  style.textContent = `
+  style.textContent = \`
     .item {
       width: 100px;
       height: 100px;
       background-color: blue;
       margin: 10px;
     }
-  `;
+  \`;
   document.head.appendChild(style);
   
   const container = document.createElement('div');
@@ -313,7 +309,7 @@ function useCssClasses() {
   for (let i = 0; i < 1000; i++) {
     const element = document.createElement('div');
     element.className = 'item'; // 使用 CSS 类
-    element.textContent = `Item ${i}`;
+    element.textContent = \`Item \${i}\`;
     container.appendChild(element);
   }
   
@@ -329,7 +325,7 @@ function useRequestAnimationFrame() {
   function update() {
     if (count < maxCount) {
       const element = document.createElement('div');
-      element.textContent = `Animated item ${count}`;
+      element.textContent = \`Animated item \${count}\`;
       document.body.appendChild(element);
       count++;
       requestAnimationFrame(update);
@@ -337,13 +333,16 @@ function useRequestAnimationFrame() {
   }
   
   requestAnimationFrame(update);
-}
+}`
     };
   },
   mounted() {
     this.updatePerformanceStats();
   },
   methods: {
+    goBack() {
+      this.$router.push('/');
+    },
     log(message) {
       this.consoleLogs.push(message);
       if (this.consoleLogs.length > 50) {
@@ -478,7 +477,7 @@ function useRequestAnimationFrame() {
           status: 'success',
           message: '批量布局操作测试完成，执行时间较短',
           time: end - start,
-          detail: '先批量写入，再批量读取，减少布局抖动'
+          detail: '先批量写入，再批量读取，避免布局抖动'
         };
         this.log('批量布局操作测试完成，时间:', end - start);
       } catch (error) {
@@ -519,7 +518,7 @@ function useRequestAnimationFrame() {
           status: 'success',
           message: 'CSS 类测试完成，执行时间较短',
           time: end - start,
-          detail: '使用 CSS 类，减少样式操作'
+          detail: '使用 CSS 类，减少样式操作次数'
         };
         this.log('CSS 类测试完成，时间:', end - start);
       } catch (error) {
@@ -532,7 +531,7 @@ function useRequestAnimationFrame() {
       }
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -540,12 +539,44 @@ function useRequestAnimationFrame() {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+  background-color: #5568d3;
+}
+
+.back-icon {
+  font-size: 16px;
 }
 
 h1 {
-  text-align: center;
   color: #333;
-  margin-bottom: 30px;
+  text-align: center;
+  margin: 0;
+  flex: 1;
 }
 
 .case-description {
@@ -553,14 +584,18 @@ h1 {
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.demo-section {
+.case-content {
   background: white;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
+}
+
+.demo-section {
+  margin-bottom: 40px;
 }
 
 .demo-buttons {
@@ -576,82 +611,69 @@ h1 {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  white-space: nowrap;
+  transition: background-color 0.3s;
 }
 
 .btn-danger {
-  background: #dc3545;
+  background-color: #dc3545;
   color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
 }
 
 .btn-success {
-  background: #28a745;
+  background-color: #28a745;
   color: white;
 }
 
-.btn-info {
-  background: #17a2b8;
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-default {
+  background-color: #6c757d;
   color: white;
 }
 
-.btn-secondary {
-  background: #6c757d;
-  color: white;
+.btn-default:hover {
+  background-color: #5a6268;
 }
 
 .result-section {
-  margin-top: 20px;
-  margin-bottom: 30px;
+  margin: 20px 0;
 }
 
 .result-card {
   padding: 20px;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-top: 10px;
 }
 
 .result-card.success {
-  background: #d4edda;
+  background-color: #d4edda;
   border: 1px solid #c3e6cb;
+  color: #155724;
 }
 
 .result-card.error {
-  background: #f8d7da;
+  background-color: #f8d7da;
   border: 1px solid #f5c6cb;
+  color: #721c24;
 }
 
 .result-item {
   margin-bottom: 10px;
 }
 
-.performance-stats {
-  margin-top: 30px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.stat-item {
-  background: white;
-  padding: 15px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .console-section {
   margin-top: 30px;
 }
 
-.console {
+.console-content {
   background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 15px;
   max-height: 300px;
@@ -659,39 +681,32 @@ h1 {
   margin-bottom: 10px;
 }
 
-.log-item {
+.console-log {
   margin-bottom: 5px;
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
 }
 
 .code-section {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
+  margin: 40px 0;
 }
 
-.code-tabs {
-  margin-top: 20px;
-}
-
-.tab {
+.tabs {
   display: flex;
   margin-bottom: 10px;
 }
 
-.tab button {
+.tab-btn {
   padding: 10px 20px;
   border: 1px solid #ddd;
   background: #f8f9fa;
   cursor: pointer;
   border-radius: 4px 4px 0 0;
   margin-right: 5px;
+  transition: background-color 0.3s;
 }
 
-.tab button.active {
+.tab-btn.active {
   background: white;
   border-bottom: 1px solid white;
   font-weight: bold;
@@ -712,20 +727,25 @@ h1 {
   line-height: 1.5;
 }
 
-.solution-section {
-  background: white;
-  padding: 30px;
+.performance-section {
+  margin-top: 40px;
+  background: #f8f9fa;
+  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.solution-section ul {
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   margin-top: 10px;
-  padding-left: 20px;
 }
 
-.solution-section li {
-  margin-bottom: 10px;
+.stat-item {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {

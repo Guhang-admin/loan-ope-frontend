@@ -1,6 +1,12 @@
 <template>
-  <div class="timeout-container">
-    <h1>第1期：神秘超时 - 数据库连接池超时问题</h1>
+  <div class="example-container">
+    <div class="header">
+      <button class="back-btn" @click="goBack">
+        <i class="back-icon">🏠</i>
+        <span>返回主页面</span>
+      </button>
+      <h1>第1期：神秘超时 - 数据库连接池耗尽导致的超时问题</h1>
+    </div>
     
     <div class="case-description">
       <h2>问题描述</h2>
@@ -132,6 +138,9 @@ export default {
     };
   },
   methods: {
+    goBack() {
+      this.$router.push('/');
+    },
     async simulateConnectionLeak() {
       try {
         this.result = await api.examples.timeout.simulateLeak();
@@ -159,16 +168,46 @@ export default {
 </script>
 
 <style scoped>
-.timeout-container {
+.example-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+  background-color: #5568d3;
+}
+
+.back-icon {
+  font-size: 16px;
+}
+
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 30px;
+  margin: 0;
+  flex: 1;
 }
 
 .case-description {

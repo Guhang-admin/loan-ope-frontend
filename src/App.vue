@@ -12,8 +12,8 @@
       </div>
       <div class="navbar-user">
         <span v-if="currentUser" class="user-info">
-          {{ currentUser.name }}
-          <button class="logout-btn" @click="logout">退出</button>
+          你好，{{ currentUser.name }}
+          <button class="logout-btn" @click="logout">退出登录</button>
         </span>
       </div>
     </nav>

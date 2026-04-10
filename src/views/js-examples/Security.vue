@@ -1,6 +1,12 @@
 <template>
   <div class="security-container">
-    <h1>第4期：安全问题 - XSS 和 CSRF 等前端安全漏洞</h1>
+    <div class="header">
+      <button class="back-btn" @click="goBack">
+        <i class="back-icon">🏠</i>
+        <span>返回主页面</span>
+      </button>
+      <h1>第4期：安全问题 - XSS 和 CSRF 等前端安全漏洞</h1>
+    </div>
     
     <div class="case-description">
       <h2>问题描述</h2>
@@ -141,7 +147,7 @@ function xssVulnerability() {
   
   // 错误：直接插入 HTML，允许执行恶意脚本
   const container = document.createElement('div');
-  container.innerHTML = `User input: ${userInput}`; // 危险！
+  container.innerHTML = \`User input: \${userInput}\`; // 危险！
   document.body.appendChild(container);
 }
 
@@ -153,7 +159,7 @@ function sensitiveDataExposure() {
   
   // 错误：在 URL 中传递敏感信息
   const userId = 12345;
-  const url = `https://example.com/api/user/${userId}?token=secret_token`;
+  const url = \`https://example.com/api/user/\${userId}?token=secret_token\`;
   console.log('Sensitive URL:', url);
 }
 
@@ -191,7 +197,7 @@ function insecureDirectObjectReference() {
   // 错误：直接使用用户输入的 ID
   function getUserData(userId) {
     // 假设这是一个 API 调用
-    return fetch(`https://example.com/api/users/${userId}`)
+    return fetch(\`https://example.com/api/users/\${userId}\`)
       .then(response => response.json());
   }
   
@@ -205,13 +211,13 @@ function preventXSS() {
   
   // 正确：转义 HTML 字符
   const container = document.createElement('div');
-  const textNode = document.createTextNode(`User input: ${userInput}`);
+  const textNode = document.createTextNode(\`User input: \${userInput}\`);
   container.appendChild(textNode);
   document.body.appendChild(container);
   
   // 或者使用 innerText
   const container2 = document.createElement('div');
-  container2.innerText = `User input (innerText): ${userInput}`;
+  container2.innerText = \`User input (innerText): \${userInput}\`;
   document.body.appendChild(container2);
 }
 
@@ -264,7 +270,7 @@ function secureObjectReference() {
   // 正确：验证用户权限
   function getUserData(userId) {
     // 首先验证用户是否有权限访问该用户数据
-    return fetch(`https://example.com/api/users/${userId}`, {
+    return fetch(\`https://example.com/api/users/\${userId}\`, {
       headers: {
         'Authorization': 'Bearer ' + getAuthToken()
       }
@@ -317,3 +323,430 @@ function contentSecurityPolicy() {
   
   console.log('Content Security Policy:', cspHeader);
 }
+`
+    };
+  },
+  methods: {
+    goBack() {
+      this.$router.push('/');
+    },
+    log(message) {
+      this.consoleLogs.push(message);
+      if (this.consoleLogs.length > 50) {
+        this.consoleLogs.shift();
+      }
+    },
+    clearConsole() {
+      this.consoleLogs = [];
+    },
+    testXssVulnerability() {
+      this.log('测试 XSS 漏洞...');
+      try {
+        badSecurityExample.xssVulnerability();
+        this.result = {
+          status: 'error',
+          message: 'XSS 漏洞测试完成，存在安全风险',
+          detail: '未转义用户输入，允许执行恶意脚本'
+        };
+        this.log('XSS 漏洞测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testSensitiveDataExposure() {
+      this.log('测试敏感数据暴露...');
+      try {
+        badSecurityExample.sensitiveDataExposure();
+        this.result = {
+          status: 'error',
+          message: '敏感数据暴露测试完成，存在安全风险',
+          detail: '在前端存储敏感信息，可能导致数据泄露'
+        };
+        this.log('敏感数据暴露测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testCsrfVulnerability() {
+      this.log('测试 CSRF 漏洞...');
+      try {
+        badSecurityExample.csrfVulnerability();
+        this.result = {
+          status: 'error',
+          message: 'CSRF 漏洞测试完成，存在安全风险',
+          detail: '直接发起 POST 请求，没有 CSRF 保护'
+        };
+        this.log('CSRF 漏洞测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testOpenRedirect() {
+      this.log('测试开放重定向...');
+      try {
+        badSecurityExample.openRedirect();
+        this.result = {
+          status: 'error',
+          message: '开放重定向测试完成，存在安全风险',
+          detail: '直接重定向到用户提供的 URL，可能导致钓鱼攻击'
+        };
+        this.log('开放重定向测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testPreventXSS() {
+      this.log('测试防止 XSS...');
+      try {
+        goodSecurityExample.preventXSS();
+        this.result = {
+          status: 'success',
+          message: '防止 XSS 测试完成，安全措施有效',
+          detail: '转义用户输入，使用 innerText 或 createTextNode'
+        };
+        this.log('防止 XSS 测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testSecureDataStorage() {
+      this.log('测试安全数据存储...');
+      try {
+        goodSecurityExample.secureDataStorage();
+        this.result = {
+          status: 'success',
+          message: '安全数据存储测试完成，安全措施有效',
+          detail: '不存储敏感信息在前端，使用加密存储'
+        };
+        this.log('安全数据存储测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testPreventCSRF() {
+      this.log('测试防止 CSRF...');
+      try {
+        goodSecurityExample.preventCSRF();
+        this.result = {
+          status: 'success',
+          message: '防止 CSRF 测试完成，安全措施有效',
+          detail: '使用 CSRF token，验证来源'
+        };
+        this.log('防止 CSRF 测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    },
+    testPreventOpenRedirect() {
+      this.log('测试防止开放重定向...');
+      try {
+        goodSecurityExample.preventOpenRedirect();
+        this.result = {
+          status: 'success',
+          message: '防止开放重定向测试完成，安全措施有效',
+          detail: '验证重定向 URL，限制域名'
+        };
+        this.log('防止开放重定向测试完成');
+      } catch (error) {
+        this.result = {
+          status: 'error',
+          message: '执行失败',
+          detail: error.message
+        };
+        this.log('执行失败:', error.message);
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.security-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+  background-color: #5568d3;
+}
+
+.back-icon {
+  font-size: 16px;
+}
+
+h1 {
+  color: #333;
+  text-align: center;
+  margin: 0;
+  flex: 1;
+}
+
+.case-description {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.case-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.demo-section {
+  margin-bottom: 40px;
+}
+
+.demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.result-section {
+  margin: 20px 0;
+}
+
+.result-card {
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.result-card.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.result-card.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.result-item {
+  margin-bottom: 10px;
+}
+
+.security-tips {
+  margin: 30px 0;
+  padding: 20px;
+  background: #e3f2fd;
+  border-radius: 8px;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tip-item i {
+  color: #1976d2;
+  font-size: 18px;
+}
+
+.console-section {
+  margin-top: 30px;
+}
+
+.console {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.log-item {
+  margin-bottom: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+}
+
+.code-section {
+  margin: 40px 0;
+}
+
+.code-tabs {
+  margin-bottom: 10px;
+}
+
+.tab {
+  display: flex;
+  gap: 10px;
+}
+
+.tab button {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.tab button.active {
+  background: white;
+  border-bottom: 1px solid white;
+  font-weight: bold;
+}
+
+.code-content {
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 4px;
+  overflow: auto;
+}
+
+.code-content pre {
+  margin: 0;
+  padding: 20px;
+  background: #f8f9fa;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.solution-section {
+  margin-top: 40px;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.solution-section ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.solution-section li {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .demo-buttons {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

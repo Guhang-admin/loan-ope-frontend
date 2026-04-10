@@ -1,8 +1,14 @@
 <template>
   <div class="js-examples-container">
-    <h1>JavaScript 进阶实战案例</h1>
+    <div class="header">
+      <button class="back-btn" @click="goBackHome">
+        <i class="back-icon">🏠</i>
+        <span>返回主页面</span>
+      </button>
+      <h1>JavaScript 进阶实战案例</h1>
+    </div>
     <p class="description">
-      本页面包含4期 JavaScript 常见问题的案例分析和解决方案，用于培训和学习。
+      本页面包含4期 JavaScript 前端问题的案例分析和解决方案，用于培训和学习。
     </p>
     
     <div class="cases-grid">
@@ -51,6 +57,9 @@ export default {
   methods: {
     navigateTo(path) {
       this.$router.push(path);
+    },
+    goBackHome() {
+      this.$router.push('/');
     }
   }
 }
@@ -63,10 +72,40 @@ export default {
   padding: 20px;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+  background-color: #5568d3;
+}
+
+.back-icon {
+  font-size: 16px;
+}
+
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 20px;
+  margin: 0;
+  flex: 1;
 }
 
 .description {
