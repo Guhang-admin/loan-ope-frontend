@@ -337,7 +337,7 @@ function useRequestAnimationFrame() {
   }
   
   requestAnimationFrame(update);
-}`
+}
     };
   },
   mounted() {
