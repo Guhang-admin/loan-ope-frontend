@@ -106,6 +106,19 @@
               暂无通知消息
             </div>
           </div>
+
+          <!-- 跑马灯图片展示 -->
+          <div class="carousel-section">
+            <h3>相关资讯</h3>
+            <div class="carousel-container">
+              <transition name="carousel-fade" mode="out-in">
+                <div key="{{ currentCarouselIndex }}" class="carousel-item">
+                  <img :src="currentCarouselItem.image" :alt="currentCarouselItem.title" class="carousel-image">
+                  <div class="carousel-title">{{ currentCarouselItem.title }}</div>
+                </div>
+              </transition>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -147,18 +160,62 @@ export default {
           message: '您的还款计划已更新',
           date: '2026-04-09'
         }
-      ]
+      ],
+      carouselItems: [
+
+        {
+          id: 1,
+          title: '贷款',
+          image: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Z7F2CFndJ2RgJVvVoRV1wQHaEJ?w=291&h=180&c=7&r=0&o=7&pid=1.7&rm=3'
+        },
+        {
+          id: 2,
+          title: '投资',
+          image: 'https://tse3-mm.cn.bing.net/th/id/OIP-C.vxKhpRVTCzje8_sf6lJ_uAAAAA?w=285&h=189&c=7&r=0&o=7&pid=1.7&rm=3'
+        },
+        {
+          id: 3,
+          title: '贷款经理',
+          image: 'https://tse3-mm.cn.bing.net/th/id/OIP-C.rLlptIcIc60J4uuMq15bzgHaE7?w=299&h=199&c=7&r=0&o=7&pid=1.7&rm=3'
+        },
+        {
+          id: 4,
+          title: '利率表',
+          image: 'https://img0.baidu.com/it/u=4201593213,921838420&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=708'
+        },
+        {
+          id: 5,
+          title: '利率变化趋势',
+          image: 'https://q1.itc.cn/q_70/images03/20240224/2595181a86c348b9b025109397c339e3.png'
+        }
+      ],
+      currentCarouselIndex: 0
     }
   },
   computed: {
     // 用于无缝滚动的通知数据（复制一份原始数据）
     scrollNotifications() {
       return this.notifications.concat(this.notifications)
+    },
+    // 当前显示的轮播项
+    currentCarouselItem() {
+      return this.carouselItems[this.currentCarouselIndex]
     }
   },
   mounted() {
     this.getCurrentUser();
     this.fetchStats();
+    
+    // 启动轮播定时器
+    this.carouselTimer = setInterval(() => {
+      this.currentCarouselIndex = (this.currentCarouselIndex + 1) % this.carouselItems.length;
+    }, 5000);
+  },
+  beforeUnmount() {
+    // 清理轮播定时器
+    if (this.carouselTimer) {
+      clearInterval(this.carouselTimer);
+    }
   },
   methods: {
     getCurrentUser() {
@@ -299,6 +356,71 @@ export default {
   border: 1px solid #e9ecef;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 跑马灯图片展示样式 */
+.carousel-section {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.carousel-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.carousel-container {
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  position: relative;
+  height: 300px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-item {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+}
+
+.carousel-image {
+  width: 100%;
+  max-width: 400px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+
+.carousel-item:hover .carousel-image {
+  transform: scale(1.05);
+}
+
+.carousel-title {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* 轮播淡入淡出效果 */
+.carousel-fade-enter-active,
+.carousel-fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.carousel-fade-enter-from,
+.carousel-fade-leave-to {
+  opacity: 0;
 }
 
 /* 顶部导航栏 */
