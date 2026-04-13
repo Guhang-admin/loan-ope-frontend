@@ -294,11 +294,11 @@ async function asyncAwaitExample() {
           
           // 回调地狱
           fetchUserData(1, (user) => {
-            this.log('User:', user);
+            this.log('User: ' + JSON.stringify(user));
             fetchUserPosts(user.id, (posts) => {
-              this.log('Posts:', posts);
+              this.log('Posts: ' + JSON.stringify(posts));
               fetchPostComments(posts[0].id, (comments) => {
-                this.log('Comments:', comments);
+                this.log('Comments: ' + JSON.stringify(comments));
                 resolve({
                   status: 'success',
                   message: '回调地狱测试完成',
@@ -346,15 +346,17 @@ async function asyncAwaitExample() {
           // 错误：没有返回 Promise
           fetchData()
             .then(data => {
-              this.log('Data:', data);
+              this.log('Data: ' + JSON.stringify(data));
               // 没有 return，导致后续 then 接收 undefined
             })
             .then(result => {
-              this.log('Result:', result); // 输出 undefined
+              this.log('Result: ' + JSON.stringify(result)); // 输出 undefined
+              const hasError = result === undefined;
               resolve({
-                status: 'success',
-                message: 'Promise 链错误测试完成',
-                time: Date.now() - startTime
+                status: hasError ? 'warning' : 'success',
+                message: hasError ? 'Promise 链错误：第二个 then 接收到了 undefined（忘记 return）' : 'Promise 链错误测试完成',
+                time: Date.now() - startTime,
+                issue: hasError ? '在第一个 then 中没有 return 值，导致后续 then 接收 undefined' : null
               });
             });
         });
@@ -395,11 +397,11 @@ async function asyncAwaitExample() {
           
           async function sequentialOperations() {
             const data1 = await fetchData();
-            this.log('Data 1:', data1);
+            this.log('Data 1: ' + JSON.stringify(data1));
             const data2 = await fetchData();
-            this.log('Data 2:', data2);
+            this.log('Data 2: ' + JSON.stringify(data2));
             const data3 = await fetchData();
-            this.log('Data 3:', data3);
+            this.log('Data 3: ' + JSON.stringify(data3));
             resolve({
               status: 'success',
               message: '串行执行测试完成',
@@ -447,11 +449,11 @@ async function asyncAwaitExample() {
           // 正确：返回 Promise
           fetchData()
             .then(data => {
-              this.log('Data:', data);
+              this.log('Data: ' + JSON.stringify(data));
               return data + ' processed'; // 返回值会传递给下一个 then
             })
             .then(result => {
-              this.log('Result:', result); // 输出 "Data processed"
+              this.log('Result: ' + JSON.stringify(result)); // 输出 "Data processed"
               resolve({
                 status: 'success',
                 message: 'Promise 链正确测试完成',
@@ -497,18 +499,18 @@ async function asyncAwaitExample() {
           async function asyncAwaitExample() {
             try {
               const data1 = await fetchData();
-              this.log('Data 1:', data1);
+              this.log('Data 1: ' + JSON.stringify(data1));
               const data2 = await fetchData();
-              this.log('Data 2:', data2);
+              this.log('Data 2: ' + JSON.stringify(data2));
               const data3 = await fetchData();
-              this.log('Data 3:', data3);
+              this.log('Data 3: ' + JSON.stringify(data3));
               resolve({
                 status: 'success',
                 message: 'Async/Await 测试完成',
                 time: Date.now() - startTime
               });
             } catch (error) {
-              this.log('Error:', error);
+              this.log('Error: ' + JSON.stringify(error.message));
               resolve({
                 status: 'error',
                 message: 'Async/Await 测试失败',
@@ -560,9 +562,9 @@ async function asyncAwaitExample() {
               fetchData(),
               fetchData()
             ]);
-            this.log('Data 1:', data1);
-            this.log('Data 2:', data2);
-            this.log('Data 3:', data3);
+            this.log('Data 1: ' + JSON.stringify(data1));
+            this.log('Data 2: ' + JSON.stringify(data2));
+            this.log('Data 3: ' + JSON.stringify(data3));
             resolve({
               status: 'success',
               message: '并行操作测试完成',

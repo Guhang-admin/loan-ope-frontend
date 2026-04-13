@@ -28,7 +28,9 @@ export const exampleMixin = {
     // 添加控制台日志
     log(message, type = 'info') {
       const timestamp = new Date().toLocaleTimeString()
-      const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`
+      // 确保type是字符串类型
+      const typeStr = typeof type === 'string' ? type : 'info'
+      const logEntry = `[${timestamp}] ${typeStr.toUpperCase()}: ${message}`
       this.consoleLogs.push(logEntry)
       // 限制日志数量
       if (this.consoleLogs.length > 50) {
