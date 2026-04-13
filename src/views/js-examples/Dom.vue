@@ -215,15 +215,43 @@ function throttle(func, limit) {
         this.log('开始测试不良 DOM 操作...');
         
         performanceMonitor.start('badDom');
-        const response = await api.jsExamples.dom.testBadDomOperation();
+        
+        // 模拟不良 DOM 操作
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 创建一个临时容器
+          const container = document.createElement('div');
+          container.id = 'test-container';
+          document.body.appendChild(container);
+          
+          // 频繁 DOM 操作
+          for (let i = 0; i < 1000; i++) {
+            const div = document.createElement('div');
+            div.textContent = 'Item ' + i;
+            container.appendChild(div);
+          }
+          
+          // 清理
+          document.body.removeChild(container);
+          
+          resolve({
+            status: 'success',
+            message: '不良 DOM 操作测试完成',
+            time: Date.now() - startTime,
+            operations: 1000
+          });
+        });
+        
         const duration = performanceMonitor.end('badDom');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('不良 DOM 操作测试完成', response.status);
+        this.log('不良 DOM 操作测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
+        this.log(`操作次数: ${result.operations}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -237,15 +265,45 @@ function throttle(func, limit) {
         this.log('开始测试优化 DOM 操作...');
         
         performanceMonitor.start('goodDom');
-        const response = await api.jsExamples.dom.testGoodDomOperation();
+        
+        // 模拟优化 DOM 操作
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 创建一个临时容器
+          const container = document.createElement('div');
+          container.id = 'test-container';
+          document.body.appendChild(container);
+          
+          // 使用 DocumentFragment 批量操作
+          const fragment = document.createDocumentFragment();
+          for (let i = 0; i < 1000; i++) {
+            const div = document.createElement('div');
+            div.textContent = 'Item ' + i;
+            fragment.appendChild(div);
+          }
+          container.appendChild(fragment);
+          
+          // 清理
+          document.body.removeChild(container);
+          
+          resolve({
+            status: 'success',
+            message: '优化 DOM 操作测试完成',
+            time: Date.now() - startTime,
+            operations: 1000
+          });
+        });
+        
         const duration = performanceMonitor.end('goodDom');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('优化 DOM 操作测试完成', response.status);
+        this.log('优化 DOM 操作测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
+        this.log(`操作次数: ${result.operations}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -259,15 +317,62 @@ function throttle(func, limit) {
         this.log('开始测试事件委托...');
         
         performanceMonitor.start('eventDelegation');
-        const response = await api.jsExamples.dom.testEventDelegation();
+        
+        // 模拟事件委托
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 创建一个临时容器
+          const container = document.createElement('div');
+          container.id = 'test-container';
+          document.body.appendChild(container);
+          
+          // 添加多个子元素
+          for (let i = 0; i < 100; i++) {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.textContent = 'Item ' + i;
+            container.appendChild(div);
+          }
+          
+          // 事件委托
+          let clickCount = 0;
+          container.addEventListener('click', function(event) {
+            if (event.target.classList.contains('item')) {
+              clickCount++;
+              // 模拟点击事件
+              if (clickCount === 1) {
+                this.log('Item clicked:', event.target.textContent);
+              }
+            }
+          }.bind(this));
+          
+          // 模拟点击
+          const items = container.querySelectorAll('.item');
+          if (items.length > 0) {
+            items[0].click();
+          }
+          
+          // 清理
+          document.body.removeChild(container);
+          
+          resolve({
+            status: 'success',
+            message: '事件委托测试完成',
+            time: Date.now() - startTime,
+            operations: 100
+          });
+        });
+        
         const duration = performanceMonitor.end('eventDelegation');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('事件委托测试完成', response.status);
+        this.log('事件委托测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
+        this.log(`操作次数: ${result.operations}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');

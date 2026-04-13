@@ -269,14 +269,53 @@ async function asyncAwaitExample() {
         this.log('开始测试回调地狱...');
         
         performanceMonitor.start('callbackHell');
-        const response = await api.jsExamples.async.testCallbackHell();
+        
+        // 模拟回调地狱
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchUserData(userId, callback) {
+            setTimeout(() => {
+              callback({ id: userId, name: 'User' + userId });
+            }, 300);
+          }
+          
+          function fetchUserPosts(userId, callback) {
+            setTimeout(() => {
+              callback([{ id: 1, title: 'Post 1' }, { id: 2, title: 'Post 2' }]);
+            }, 300);
+          }
+          
+          function fetchPostComments(postId, callback) {
+            setTimeout(() => {
+              callback([{ id: 1, content: 'Comment 1' }, { id: 2, content: 'Comment 2' }]);
+            }, 300);
+          }
+          
+          // 回调地狱
+          fetchUserData(1, (user) => {
+            this.log('User:', user);
+            fetchUserPosts(user.id, (posts) => {
+              this.log('Posts:', posts);
+              fetchPostComments(posts[0].id, (comments) => {
+                this.log('Comments:', comments);
+                resolve({
+                  status: 'success',
+                  message: '回调地狱测试完成',
+                  time: Date.now() - startTime
+                });
+              });
+            });
+          });
+        });
+        
         const duration = performanceMonitor.end('callbackHell');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('回调地狱测试完成', response.status);
+        this.log('回调地狱测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -291,14 +330,42 @@ async function asyncAwaitExample() {
         this.log('开始测试 Promise 链错误...');
         
         performanceMonitor.start('badPromiseChain');
-        const response = await api.jsExamples.async.testBadPromiseChain();
+        
+        // 模拟 Promise 链错误
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchData() {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve('Data');
+              }, 300);
+            });
+          }
+          
+          // 错误：没有返回 Promise
+          fetchData()
+            .then(data => {
+              this.log('Data:', data);
+              // 没有 return，导致后续 then 接收 undefined
+            })
+            .then(result => {
+              this.log('Result:', result); // 输出 undefined
+              resolve({
+                status: 'success',
+                message: 'Promise 链错误测试完成',
+                time: Date.now() - startTime
+              });
+            });
+        });
+        
         const duration = performanceMonitor.end('badPromiseChain');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('Promise 链错误测试完成', response.status);
+        this.log('Promise 链错误测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -313,14 +380,43 @@ async function asyncAwaitExample() {
         this.log('开始测试串行并行...');
         
         performanceMonitor.start('sequentialParallel');
-        const response = await api.jsExamples.async.testSequentialParallel();
+        
+        // 模拟串行执行
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchData() {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve('Data');
+              }, 300);
+            });
+          }
+          
+          async function sequentialOperations() {
+            const data1 = await fetchData();
+            this.log('Data 1:', data1);
+            const data2 = await fetchData();
+            this.log('Data 2:', data2);
+            const data3 = await fetchData();
+            this.log('Data 3:', data3);
+            resolve({
+              status: 'success',
+              message: '串行执行测试完成',
+              time: Date.now() - startTime
+            });
+          }
+          
+          sequentialOperations.bind(this)();
+        });
+        
         const duration = performanceMonitor.end('sequentialParallel');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('串行并行测试完成', response.status);
+        this.log('串行并行测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -335,14 +431,42 @@ async function asyncAwaitExample() {
         this.log('开始测试 Promise 链正确...');
         
         performanceMonitor.start('promiseChain');
-        const response = await api.jsExamples.async.testPromiseChain();
+        
+        // 模拟正确的 Promise 链
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchData() {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve('Data');
+              }, 300);
+            });
+          }
+          
+          // 正确：返回 Promise
+          fetchData()
+            .then(data => {
+              this.log('Data:', data);
+              return data + ' processed'; // 返回值会传递给下一个 then
+            })
+            .then(result => {
+              this.log('Result:', result); // 输出 "Data processed"
+              resolve({
+                status: 'success',
+                message: 'Promise 链正确测试完成',
+                time: Date.now() - startTime
+              });
+            });
+        });
+        
         const duration = performanceMonitor.end('promiseChain');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('Promise 链正确测试完成', response.status);
+        this.log('Promise 链正确测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -357,14 +481,52 @@ async function asyncAwaitExample() {
         this.log('开始测试 Async/Await...');
         
         performanceMonitor.start('asyncAwait');
-        const response = await api.jsExamples.async.testAsyncAwait();
+        
+        // 模拟 Async/Await
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchData() {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve('Data');
+              }, 300);
+            });
+          }
+          
+          async function asyncAwaitExample() {
+            try {
+              const data1 = await fetchData();
+              this.log('Data 1:', data1);
+              const data2 = await fetchData();
+              this.log('Data 2:', data2);
+              const data3 = await fetchData();
+              this.log('Data 3:', data3);
+              resolve({
+                status: 'success',
+                message: 'Async/Await 测试完成',
+                time: Date.now() - startTime
+              });
+            } catch (error) {
+              this.log('Error:', error);
+              resolve({
+                status: 'error',
+                message: 'Async/Await 测试失败',
+                time: Date.now() - startTime
+              });
+            }
+          }
+          
+          asyncAwaitExample.bind(this)();
+        });
+        
         const duration = performanceMonitor.end('asyncAwait');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('Async/Await 测试完成', response.status);
+        this.log('Async/Await 测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -379,14 +541,45 @@ async function asyncAwaitExample() {
         this.log('开始测试并行操作...');
         
         performanceMonitor.start('parallelOperation');
-        const response = await api.jsExamples.async.testParallelOperation();
+        
+        // 模拟并行操作
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          function fetchData() {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve('Data');
+              }, 300);
+            });
+          }
+          
+          async function parallelOperations() {
+            const [data1, data2, data3] = await Promise.all([
+              fetchData(),
+              fetchData(),
+              fetchData()
+            ]);
+            this.log('Data 1:', data1);
+            this.log('Data 2:', data2);
+            this.log('Data 3:', data3);
+            resolve({
+              status: 'success',
+              message: '并行操作测试完成',
+              time: Date.now() - startTime
+            });
+          }
+          
+          parallelOperations.bind(this)();
+        });
+        
         const duration = performanceMonitor.end('parallelOperation');
         
         this.result = {
-          ...response,
+          ...result,
           time: Math.round(duration)
         };
-        this.log('并行操作测试完成', response.status);
+        this.log('并行操作测试完成', result.status);
         this.log(`执行时间: ${duration.toFixed(2)}ms`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);

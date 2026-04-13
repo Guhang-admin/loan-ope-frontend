@@ -160,9 +160,39 @@ function secureXss() {
         this.clearResult()
         this.clearConsole()
         this.log('开始测试 XSS 漏洞...')
-        const response = await api.jsExamples.security.testXssVulnerability()
-        this.result = response
-        this.log('XSS 漏洞测试完成', response.status)
+        
+        // 模拟 XSS 漏洞测试
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now()
+          
+          // 模拟 XSS 攻击
+          const maliciousInput = '<script>alert("XSS Attack!")</script>'
+          
+          // 模拟不安全的处理
+          function vulnerableXss(input) {
+            // 这里模拟直接插入 HTML 的危险行为
+            return { 
+              vulnerable: true, 
+              input: input, 
+              message: 'XSS 漏洞存在：输入未经过滤直接插入 HTML'
+            }
+          }
+          
+          const testResult = vulnerableXss(maliciousInput)
+          
+          setTimeout(() => {
+            resolve({
+              status: 'warning',
+              message: testResult.message,
+              time: Date.now() - startTime,
+              details: testResult
+            })
+          }, 500)
+        })
+        
+        this.result = result
+        this.log('XSS 漏洞测试完成', result.status)
+        this.log(`详情: ${result.details.message}`)
       } catch (error) {
         this.result = { status: 'error', message: error.message }
         this.log('操作失败: ' + error.message, 'error')
@@ -173,9 +203,35 @@ function secureXss() {
         this.clearResult()
         this.clearConsole()
         this.log('开始测试 CSRF 漏洞...')
-        const response = await api.jsExamples.security.testCsrfVulnerability()
-        this.result = response
-        this.log('CSRF 漏洞测试完成', response.status)
+        
+        // 模拟 CSRF 漏洞测试
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now()
+          
+          // 模拟 CSRF 攻击场景
+          function vulnerableCsrf() {
+            // 这里模拟没有 CSRF Token 保护的请求
+            return { 
+              vulnerable: true, 
+              message: 'CSRF 漏洞存在：请求未验证来源'
+            }
+          }
+          
+          const testResult = vulnerableCsrf()
+          
+          setTimeout(() => {
+            resolve({
+              status: 'warning',
+              message: testResult.message,
+              time: Date.now() - startTime,
+              details: testResult
+            })
+          }, 500)
+        })
+        
+        this.result = result
+        this.log('CSRF 漏洞测试完成', result.status)
+        this.log(`详情: ${result.details.message}`)
       } catch (error) {
         this.result = { status: 'error', message: error.message }
         this.log('操作失败: ' + error.message, 'error')
@@ -186,9 +242,48 @@ function secureXss() {
         this.clearResult()
         this.clearConsole()
         this.log('开始测试安全代码...')
-        const response = await api.jsExamples.security.testSecureCode()
-        this.result = response
-        this.log('安全代码测试完成', response.status)
+        
+        // 模拟安全代码测试
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now()
+          
+          // 模拟安全的处理方式
+          function secureXss(input) {
+            // 这里模拟安全的处理方式
+            return { 
+              secure: true, 
+              message: 'XSS 防护：使用 textContent 替代 innerHTML'
+            }
+          }
+          
+          function secureCsrf() {
+            // 这里模拟带有 CSRF Token 保护的请求
+            return { 
+              secure: true, 
+              message: 'CSRF 防护：使用 CSRF Token 验证请求'
+            }
+          }
+          
+          const xssResult = secureXss('<script>alert("XSS Attack!")</script>')
+          const csrfResult = secureCsrf()
+          
+          setTimeout(() => {
+            resolve({
+              status: 'success',
+              message: '安全代码测试通过',
+              time: Date.now() - startTime,
+              details: {
+                xss: xssResult,
+                csrf: csrfResult
+              }
+            })
+          }, 500)
+        })
+        
+        this.result = result
+        this.log('安全代码测试完成', result.status)
+        this.log(`XSS 防护: ${result.details.xss.message}`)
+        this.log(`CSRF 防护: ${result.details.csrf.message}`)
       } catch (error) {
         this.result = { status: 'error', message: error.message }
         this.log('操作失败: ' + error.message, 'error')

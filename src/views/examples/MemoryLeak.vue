@@ -184,7 +184,10 @@ export default {
       try {
         this.clearResult();
         this.log('开始模拟内存泄漏...');
-        const response = await api.examples.memoryleak.simulateLeak();
+        // 生成随机ID和数据
+        const id = Date.now();
+        const data = '模拟内存泄漏数据'.repeat(1000);
+        const response = await api.examples.memoryleak.addToCache(id, data);
         this.result = response;
         this.log('内存泄漏模拟完成', response.status);
       } catch (error) {
@@ -196,10 +199,10 @@ export default {
     async fixedMemoryLeak() {
       try {
         this.clearResult();
-        this.log('开始修复内存泄漏...');
-        const response = await api.examples.memoryleak.fixedLeak();
+        this.log('开始检查内存状态...');
+        const response = await api.examples.memoryleak.getCacheStatus();
         this.result = response;
-        this.log('内存泄漏修复完成', response.status);
+        this.log('内存状态检查完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -210,7 +213,7 @@ export default {
       try {
         this.clearResult();
         this.log('开始清理内存...');
-        const response = await api.examples.memoryleak.clearMemory();
+        const response = await api.examples.memoryleak.clearCache();
         this.result = response;
         this.log('内存清理完成', response.status);
       } catch (error) {

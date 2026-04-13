@@ -199,11 +199,11 @@ public class TransferService {
           return;
         }
         
-        const response = await api.examples.dataconsistency.transferWithoutTransaction({
-          fromUserId: this.fromUserId,
-          toUserId: this.toUserId,
-          amount: this.amount
-        });
+        const response = await api.examples.dataconsistency.transfer(
+          this.fromUserId,
+          this.toUserId,
+          this.amount
+        );
         this.result = response;
         this.log('无事务转账完成', response.status);
       } catch (error) {
@@ -230,11 +230,11 @@ public class TransferService {
           return;
         }
         
-        const response = await api.examples.dataconsistency.transferWithTransaction({
-          fromUserId: this.fromUserId,
-          toUserId: this.toUserId,
-          amount: this.amount
-        });
+        const response = await api.examples.dataconsistency.transferFixed(
+          this.fromUserId,
+          this.toUserId,
+          this.amount
+        );
         this.result = response;
         this.log('有事务转账完成', response.status);
       } catch (error) {

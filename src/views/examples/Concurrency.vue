@@ -240,7 +240,8 @@ public class DeadlockFixed {
       try {
         this.clearResult();
         this.log('开始模拟竞态条件...');
-        const response = await api.examples.concurrency.simulateRaceCondition();
+        // 模拟订单处理，使用1作为数量
+        const response = await api.examples.concurrency.processOrder(1);
         this.result = response;
         this.log('竞态条件模拟完成', response.status);
       } catch (error) {
@@ -252,10 +253,10 @@ public class DeadlockFixed {
     async simulateDeadlock() {
       try {
         this.clearResult();
-        this.log('开始模拟死锁...');
-        const response = await api.examples.concurrency.simulateDeadlock();
+        this.log('开始检查库存状态...');
+        const response = await api.examples.concurrency.getInventory();
         this.result = response;
-        this.log('死锁模拟完成', response.status);
+        this.log('库存状态检查完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -266,7 +267,8 @@ public class DeadlockFixed {
       try {
         this.clearResult();
         this.log('开始修复并发问题...');
-        const response = await api.examples.concurrency.fixedConcurrency();
+        // 模拟使用原子操作处理订单
+        const response = await api.examples.concurrency.processOrderFixed(1);
         this.result = response;
         this.log('并发问题修复完成', response.status);
       } catch (error) {

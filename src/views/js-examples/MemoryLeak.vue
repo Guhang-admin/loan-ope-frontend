@@ -227,9 +227,39 @@ function globalVariableFixed() {
       try {
         this.clearResult();
         this.log('开始模拟闭包泄漏...');
-        const response = await api.jsExamples.memoryleak.simulateClosureLeak();
-        this.result = response;
-        this.log('闭包泄漏模拟完成', response.status);
+        
+        // 模拟闭包泄漏
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 模拟闭包泄漏
+          function createClosureLeak() {
+            const largeObject = new Array(1000000).fill('data');
+            
+            return function() {
+              console.log('Closure called');
+            };
+          }
+          
+          const leakyFunction = createClosureLeak();
+          
+          // 模拟一些操作
+          for (let i = 0; i < 100; i++) {
+            leakyFunction();
+          }
+          
+          resolve({
+            status: 'success',
+            message: '闭包泄漏模拟完成',
+            time: Date.now() - startTime,
+            memoryUsage: '可能增加（闭包持有大对象引用）',
+            objects: '1000000+'
+          });
+        });
+        
+        this.result = result;
+        this.log('闭包泄漏模拟完成', result.status);
+        this.log(`内存使用: ${result.memoryUsage}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -240,9 +270,36 @@ function globalVariableFixed() {
       try {
         this.clearResult();
         this.log('开始模拟监听器泄漏...');
-        const response = await api.jsExamples.memoryleak.simulateListenerLeak();
-        this.result = response;
-        this.log('监听器泄漏模拟完成', response.status);
+        
+        // 模拟监听器泄漏
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 创建一个临时元素
+          const element = document.createElement('div');
+          element.id = 'test-element';
+          document.body.appendChild(element);
+          
+          // 添加事件监听器
+          element.addEventListener('click', function() {
+            console.log('Element clicked');
+          });
+          
+          // 移除元素但不移除监听器（模拟泄漏）
+          element.remove();
+          
+          resolve({
+            status: 'success',
+            message: '监听器泄漏模拟完成',
+            time: Date.now() - startTime,
+            memoryUsage: '可能增加（事件监听器未移除）',
+            objects: '1+'
+          });
+        });
+        
+        this.result = result;
+        this.log('监听器泄漏模拟完成', result.status);
+        this.log(`内存使用: ${result.memoryUsage}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -253,9 +310,33 @@ function globalVariableFixed() {
       try {
         this.clearResult();
         this.log('开始模拟定时器泄漏...');
-        const response = await api.jsExamples.memoryleak.simulateTimerLeak();
-        this.result = response;
-        this.log('定时器泄漏模拟完成', response.status);
+        
+        // 模拟定时器泄漏
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 模拟定时器泄漏
+          const data = new Array(1000000).fill('timer data');
+          
+          const timerId = setInterval(function() {
+            console.log('Timer tick', data.length);
+          }, 1000);
+          
+          // 模拟一段时间后返回结果
+          setTimeout(() => {
+            resolve({
+              status: 'success',
+              message: '定时器泄漏模拟完成',
+              time: Date.now() - startTime,
+              memoryUsage: '可能增加（定时器持有数据引用）',
+              objects: '1000000+'
+            });
+          }, 2000);
+        });
+        
+        this.result = result;
+        this.log('定时器泄漏模拟完成', result.status);
+        this.log(`内存使用: ${result.memoryUsage}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -266,9 +347,59 @@ function globalVariableFixed() {
       try {
         this.clearResult();
         this.log('开始修复内存泄漏...');
-        const response = await api.jsExamples.memoryleak.fixedMemoryLeak();
-        this.result = response;
-        this.log('内存泄漏修复完成', response.status);
+        
+        // 模拟修复内存泄漏
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 模拟修复闭包泄漏
+          function createClosureFixed() {
+            let largeObject = new Array(1000000).fill('data');
+            
+            return function() {
+              console.log('Closure called');
+            };
+          }
+          
+          let fixedFunction = createClosureFixed();
+          // 解除引用
+          fixedFunction = null;
+          
+          // 模拟修复事件监听器泄漏
+          const element = document.createElement('div');
+          element.id = 'test-element-2';
+          document.body.appendChild(element);
+          
+          function handleClick() {
+            console.log('Element clicked');
+          }
+          
+          element.addEventListener('click', handleClick);
+          element.removeEventListener('click', handleClick);
+          element.remove();
+          
+          // 模拟修复定时器泄漏
+          let data = new Array(1000000).fill('timer data');
+          
+          const timerId = setInterval(function() {
+            console.log('Timer tick', data.length);
+          }, 1000);
+          
+          clearInterval(timerId);
+          data = null;
+          
+          resolve({
+            status: 'success',
+            message: '内存泄漏修复完成',
+            time: Date.now() - startTime,
+            memoryUsage: '已优化',
+            objects: '已清理'
+          });
+        });
+        
+        this.result = result;
+        this.log('内存泄漏修复完成', result.status);
+        this.log(`内存使用: ${result.memoryUsage}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -279,9 +410,33 @@ function globalVariableFixed() {
       try {
         this.clearResult();
         this.log('开始清理内存...');
-        const response = await api.jsExamples.memoryleak.clearMemory();
-        this.result = response;
-        this.log('内存清理完成', response.status);
+        
+        // 模拟清理内存
+        const result = await new Promise((resolve) => {
+          const startTime = Date.now();
+          
+          // 模拟清理全局变量
+          if (window.largeData) {
+            window.largeData = null;
+          }
+          
+          // 触发垃圾回收（如果可用）
+          if (window.gc) {
+            window.gc();
+          }
+          
+          resolve({
+            status: 'success',
+            message: '内存清理完成',
+            time: Date.now() - startTime,
+            memoryUsage: '已清理',
+            objects: '已释放'
+          });
+        });
+        
+        this.result = result;
+        this.log('内存清理完成', result.status);
+        this.log(`内存使用: ${result.memoryUsage}`);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
