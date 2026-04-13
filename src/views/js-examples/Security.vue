@@ -18,13 +18,13 @@
         <h2>演示</h2>
 
         <div class="demo-buttons">
-          <button @click="testXssVulnerability" class="btn danger">
+          <button @click="testXssVulnerability" class="btn btn-danger">
             测试 XSS 漏洞
           </button>
-          <button @click="testCsrfVulnerability" class="btn danger">
+          <button @click="testCsrfVulnerability" class="btn btn-danger">
             测试 CSRF 漏洞
           </button>
-          <button @click="testSecureCode" class="btn success">
+          <button @click="testSecureCode" class="btn btn-success">
             测试安全代码
           </button>
         </div>
@@ -117,17 +117,13 @@
 </template>
 
 <script>
-import api from '../../api/api'
-import { exampleMixin, exampleStyles } from '../../utils/exampleMixin'
+import { exampleMixin } from '../../utils/exampleMixin'
 
 export default {
   name: 'SecurityExample',
   mixins: [exampleMixin],
   data() {
     return {
-      result: null,
-      consoleLogs: [],
-      activeTab: 'error',
       errorCode: `// XSS 漏洞示例
 function vulnerableXss() {
   const userInput = document.getElementById('userInput').value;
@@ -141,20 +137,6 @@ function secureXss() {
     }
   },
   methods: {
-    log(message, type = 'info') {
-      const timestamp = new Date().toLocaleTimeString()
-      const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`
-      this.consoleLogs.push(logEntry)
-      if (this.consoleLogs.length > 50) {
-        this.consoleLogs.shift()
-      }
-    },
-    clearConsole() {
-      this.consoleLogs = []
-    },
-    clearResult() {
-      this.result = null
-    },
     async testXssVulnerability() {
       try {
         this.clearResult()
@@ -166,7 +148,7 @@ function secureXss() {
           const startTime = Date.now()
           
           // 模拟 XSS 攻击
-          const maliciousInput = '<script>alert("XSS Attack!")</script>'
+          const maliciousInput = '<script>alert("XSS Attack!")<\/script>'
           
           // 模拟不安全的处理
           function vulnerableXss(input) {
@@ -264,7 +246,7 @@ function secureXss() {
             }
           }
           
-          const xssResult = secureXss('<script>alert("XSS Attack!")</script>')
+          const xssResult = secureXss('<script>alert("XSS Attack!")<\/script>')
           const csrfResult = secureCsrf()
           
           setTimeout(() => {

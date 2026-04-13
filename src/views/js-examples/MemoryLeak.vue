@@ -219,7 +219,10 @@ function globalVariableFixed() {
       tabConfigs: {
         error: exampleStyles.tabs.error,
         fixed: exampleStyles.tabs.fixed
-      }
+      },
+      timerId: null,
+      eventHandlers: {},
+      elements: {}
     };
   },
   methods: {
@@ -247,6 +250,9 @@ function globalVariableFixed() {
           for (let i = 0; i < 100; i++) {
             leakyFunction();
           }
+          
+          // 设置全局变量，用于演示内存清理
+          window.largeData = new Array(1000000).fill('global data');
           
           resolve({
             status: 'success',
@@ -280,10 +286,19 @@ function globalVariableFixed() {
           element.id = 'test-element';
           document.body.appendChild(element);
           
-          // 添加事件监听器
-          element.addEventListener('click', function() {
+          // 保存元素引用
+          this.elements['test-element'] = element;
+          
+          // 创建事件处理器函数
+          const clickHandler = function() {
             console.log('Element clicked');
-          });
+          };
+          
+          // 保存事件处理器引用
+          this.eventHandlers['test-element'] = clickHandler;
+          
+          // 添加事件监听器
+          element.addEventListener('click', clickHandler);
           
           // 移除元素但不移除监听器（模拟泄漏）
           element.remove();
@@ -318,7 +333,8 @@ function globalVariableFixed() {
           // 模拟定时器泄漏
           const data = new Array(1000000).fill('timer data');
           
-          const timerId = setInterval(function() {
+          // 保存定时器ID到组件实例
+          this.timerId = setInterval(function() {
             console.log('Timer tick', data.length);
           }, 1000);
           
@@ -388,6 +404,26 @@ function globalVariableFixed() {
           clearInterval(timerId);
           data = null;
           
+          // 清除之前可能存在的定时器
+          if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+            this.log('已清除之前的定时器');
+          }
+          
+          // 清理事件监听器
+          for (const [key, element] of Object.entries(this.elements)) {
+            const handler = this.eventHandlers[key];
+            if (element && handler) {
+              element.removeEventListener('click', handler);
+              this.log(`已清除元素 ${key} 的事件监听器`);
+            }
+          }
+          
+          // 清空引用
+          this.elements = {};
+          this.eventHandlers = {};
+          
           resolve({
             status: 'success',
             message: '内存泄漏修复完成',
@@ -419,6 +455,26 @@ function globalVariableFixed() {
           if (window.largeData) {
             window.largeData = null;
           }
+          
+          // 清除定时器
+          if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+            this.log('已清除定时器');
+          }
+          
+          // 清理事件监听器
+          for (const [key, element] of Object.entries(this.elements)) {
+            const handler = this.eventHandlers[key];
+            if (element && handler) {
+              element.removeEventListener('click', handler);
+              this.log(`已清除元素 ${key} 的事件监听器`);
+            }
+          }
+          
+          // 清空引用
+          this.elements = {};
+          this.eventHandlers = {};
           
           // 触发垃圾回收（如果可用）
           if (window.gc) {
