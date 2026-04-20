@@ -23,14 +23,39 @@
 
         <div class="demo-buttons">
           <button @click="simulateMemoryLeak" :class="buttonTypes.danger.class">
-            模拟内存泄漏
+            模拟内存泄漏（单条）
           </button>
-          <button @click="fixedMemoryLeak" :class="buttonTypes.success.class">
-            修复内存泄漏
+          <button @click="simulateMemoryLeakBatch" :class="buttonTypes.danger.class">
+            批量模拟内存泄漏
+          </button>
+          <button @click="checkMemoryStatus" :class="buttonTypes.success.class">
+            检查内存状态
+          </button>
+          <button @click="showNormalCase" :class="buttonTypes.primary.class">
+            展示正常情况
           </button>
           <button @click="clearMemory" :class="buttonTypes.secondary.class">
             清理内存
           </button>
+        </div>
+
+        <div class="memory-status-section">
+          <h3>内存状态</h3>
+          <div class="memory-usage">
+            <div class="memory-bar-container">
+              <div class="memory-bar" :style="{ width: memoryUsagePercent + '%' }"></div>
+            </div>
+            <div class="memory-info">
+              <span v-if="memoryInfo">{{ memoryInfo }}</span>
+              <span v-else>请点击按钮查看内存状态</span>
+            </div>
+          </div>
+          <div class="cache-info">
+            <div class="cache-item">
+              <strong>缓存对象数量：</strong>
+              <span>{{ cacheSize || 0 }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="result-section" v-if="result">
@@ -176,10 +201,31 @@ export default {
       tabConfigs: {
         error: exampleStyles.tabs.error,
         fixed: exampleStyles.tabs.fixed
-      }
+      },
+      memoryUsagePercent: 0,
+      memoryInfo: null,
+      cacheSize: 0
     };
   },
+  mounted() {
+    // 页面加载时自动检查内存状态，展示正常情况
+    this.checkMemoryStatus(false);
+  },
   methods: {
+    updateMemoryStatus(response) {
+      if (response.memoryUsage) {
+        this.memoryInfo = response.memoryUsage;
+        // 提取内存使用百分比
+        const match = response.memoryUsage.match(/\(([\d.]+)%\)/);
+        if (match) {
+          this.memoryUsagePercent = parseFloat(match[1]);
+        }
+      }
+      if (response.cacheSize !== undefined) {
+        this.cacheSize = response.cacheSize;
+      }
+    },
+
     async simulateMemoryLeak() {
       try {
         this.clearResult();
@@ -189,6 +235,7 @@ export default {
         const data = '模拟内存泄漏数据'.repeat(1000);
         const response = await api.examples.memoryleak.addToCache(id, data);
         this.result = response;
+        this.updateMemoryStatus(response);
         this.log('内存泄漏模拟完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -196,13 +243,33 @@ export default {
       }
     },
 
-    async fixedMemoryLeak() {
+    async simulateMemoryLeakBatch() {
       try {
         this.clearResult();
-        this.log('开始检查内存状态...');
-        const response = await api.examples.memoryleak.getCacheStatus();
+        this.log('开始批量模拟内存泄漏...');
+        // 批量添加100条数据，加速内存泄漏
+        const response = await api.examples.memoryleak.addMultipleToCache(100);
         this.result = response;
-        this.log('内存状态检查完成', response.status);
+        this.updateMemoryStatus(response);
+        this.log('批量内存泄漏模拟完成', response.status);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
+      }
+    },
+
+    async checkMemoryStatus(showResult = true) {
+      try {
+        if (showResult) {
+          this.clearResult();
+          this.log('开始检查内存状态...');
+        }
+        const response = await api.examples.memoryleak.getCacheStatus();
+        if (showResult) {
+          this.result = response;
+          this.log('内存状态检查完成', response.status);
+        }
+        this.updateMemoryStatus(response);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -215,7 +282,25 @@ export default {
         this.log('开始清理内存...');
         const response = await api.examples.memoryleak.clearCache();
         this.result = response;
+        this.updateMemoryStatus(response);
         this.log('内存清理完成', response.status);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
+      }
+    },
+
+    async showNormalCase() {
+      try {
+        this.clearResult();
+        this.log('展示正常情况...');
+        // 先清理内存
+        await api.examples.memoryleak.clearCache();
+        // 然后检查内存状态
+        const response = await api.examples.memoryleak.getCacheStatus();
+        this.result = response;
+        this.updateMemoryStatus(response);
+        this.log('正常情况展示完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -231,5 +316,95 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.memory-status-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.memory-status-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.memory-usage {
+  margin-bottom: 15px;
+}
+
+.memory-bar-container {
+  width: 100%;
+  height: 20px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.memory-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.memory-info {
+  text-align: center;
+  font-weight: bold;
+  color: #495057;
+}
+
+.cache-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.cache-item {
+  background: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.demo-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.demo-buttons button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.demo-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .memoryleak-container {
+    padding: 10px;
+  }
+  
+  .demo-buttons {
+    flex-direction: column;
+  }
+  
+  .demo-buttons button {
+    width: 100%;
+  }
 }
 </style>

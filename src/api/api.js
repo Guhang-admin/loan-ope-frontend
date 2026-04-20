@@ -146,7 +146,14 @@ const api = {
     // 第3期：内存异常
     memoryleak: {
       addToCache: (id, data) => {
-        return fetch(`${API_BASE_URL}/examples/memoryleak/add?id=${id}&data=${encodeURIComponent(data)}`, {
+        return fetch(`${API_BASE_URL}/examples/memoryleak/add`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ id, data })
+        }).then(handleResponse);
+      },
+      addMultipleToCache: (count) => {
+        return fetch(`${API_BASE_URL}/examples/memoryleak/add-multiple?count=${count}`, {
           method: 'POST'
         }).then(handleResponse);
       },
@@ -179,6 +186,11 @@ const api = {
       },
       resetInventory: () => {
         return fetch(`${API_BASE_URL}/examples/concurrency/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      simulateDeadlock: () => {
+        return fetch(`${API_BASE_URL}/examples/concurrency/deadlock`, {
           method: 'POST'
         }).then(handleResponse);
       }

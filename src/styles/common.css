@@ -161,6 +161,15 @@ h3 {
   background-color: #5a6268;
 }
 
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0069d9;
+}
+
 /* 结果展示区域 */
 .result-section {
   margin: 20px 0;

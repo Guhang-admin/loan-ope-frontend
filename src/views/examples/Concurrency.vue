@@ -31,6 +31,12 @@
           <button @click="fixedConcurrency" :class="buttonTypes.success.class">
             修复并发问题
           </button>
+          <button @click="resetInventory" :class="buttonTypes.secondary.class">
+            重置库存
+          </button>
+          <button @click="checkInventory" :class="buttonTypes.primary.class">
+            检查库存
+          </button>
         </div>
 
         <div class="result-section" v-if="result">
@@ -42,6 +48,18 @@
             <div class="result-item">
               <strong>消息：</strong>{{ result.message }}
             </div>
+            <div class="result-item" v-if="result.initialInventory">
+              <strong>初始库存：</strong>{{ result.initialInventory }}
+            </div>
+            <div class="result-item" v-if="result.inventory">
+              <strong>最终库存：</strong>{{ result.inventory }}
+            </div>
+            <div class="result-item" v-if="result.expectedInventory">
+              <strong>预期库存：</strong>{{ result.expectedInventory }}
+            </div>
+            <div class="result-item" v-if="result.raceConditionOccurred !== undefined">
+              <strong>竞态条件：</strong>{{ result.raceConditionOccurred ? '已发生' : '未发生' }}
+            </div>
             <div class="result-item" v-if="result.counter">
               <strong>计数器值：</strong>{{ result.counter }}
             </div>
@@ -50,6 +68,24 @@
             </div>
             <div class="result-item" v-if="result.threads">
               <strong>线程状态：</strong>{{ result.threads }}
+            </div>
+            <div class="result-item" v-if="result.warning">
+              <strong>警告：</strong>{{ result.warning }}
+            </div>
+            <div class="result-item" v-if="result.info">
+              <strong>信息：</strong>{{ result.info }}
+            </div>
+            <div class="result-item" v-if="result.details">
+              <strong>详细说明：</strong>{{ result.details }}
+            </div>
+            <div class="result-item" v-if="result.example">
+              <strong>示例：</strong>{{ result.example }}
+            </div>
+            <div class="result-item" v-if="result.explanation">
+              <strong>解释：</strong>{{ result.explanation }}
+            </div>
+            <div class="result-item" v-if="result.solution">
+              <strong>解决方案：</strong>{{ result.solution }}
             </div>
           </div>
         </div>
@@ -238,7 +274,6 @@ public class DeadlockFixed {
   methods: {
     async simulateRaceCondition() {
       try {
-        this.clearResult();
         this.log('开始模拟竞态条件...');
         // 模拟订单处理，使用1作为数量
         const response = await api.examples.concurrency.processOrder(1);
@@ -252,11 +287,10 @@ public class DeadlockFixed {
 
     async simulateDeadlock() {
       try {
-        this.clearResult();
-        this.log('开始检查库存状态...');
-        const response = await api.examples.concurrency.getInventory();
+        this.log('开始模拟死锁...');
+        const response = await api.examples.concurrency.simulateDeadlock();
         this.result = response;
-        this.log('库存状态检查完成', response.status);
+        this.log('死锁模拟完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
@@ -265,12 +299,35 @@ public class DeadlockFixed {
 
     async fixedConcurrency() {
       try {
-        this.clearResult();
         this.log('开始修复并发问题...');
         // 模拟使用原子操作处理订单
         const response = await api.examples.concurrency.processOrderFixed(1);
         this.result = response;
         this.log('并发问题修复完成', response.status);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
+      }
+    },
+
+    async resetInventory() {
+      try {
+        this.log('开始重置库存...');
+        const response = await api.examples.concurrency.resetInventory();
+        this.result = response;
+        this.log('库存重置完成', response.status);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
+      }
+    },
+
+    async checkInventory() {
+      try {
+        this.log('开始检查库存...');
+        const response = await api.examples.concurrency.getInventory();
+        this.result = response;
+        this.log('库存检查完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
