@@ -117,6 +117,20 @@ const api = {
     
     // 第2期：数据不一致
     dataconsistency: {
+      resetAccounts: () => {
+        return fetch(`${API_BASE_URL}/examples/dataconsistency/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      addBalance: (userId, amount) => {
+        return fetch(`${API_BASE_URL}/examples/dataconsistency/add-balance?userId=${userId}&amount=${amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      getAccounts: () => {
+        return fetch(`${API_BASE_URL}/examples/dataconsistency/accounts`)
+          .then(handleResponse);
+      },
       transfer: (fromUserId, toUserId, amount) => {
         return fetch(`${API_BASE_URL}/examples/dataconsistency/transfer?fromUserId=${fromUserId}&toUserId=${toUserId}&amount=${amount}`, {
           method: 'POST'

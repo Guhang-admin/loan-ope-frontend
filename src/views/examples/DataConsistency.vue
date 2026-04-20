@@ -37,6 +37,25 @@
             <button @click="transferWithTransaction" :class="buttonTypes.success.class">
               有事务转账
             </button>
+            <button @click="resetAccounts" class="btn-secondary">
+              重置账户
+            </button>
+          </div>
+        </div>
+
+        <div class="balance-section">
+          <h3>账户余额</h3>
+          <div class="balance-display">
+            <div class="balance-item">
+              <span class="balance-label">用户1001：</span>
+              <span class="balance-value">{{ currentBalances['1001'] || 0 }}</span>
+              <button @click="addBalance(1001)" class="btn-small">+ 增加</button>
+            </div>
+            <div class="balance-item">
+              <span class="balance-label">用户1002：</span>
+              <span class="balance-value">{{ currentBalances['1002'] || 0 }}</span>
+              <button @click="addBalance(1002)" class="btn-small">+ 增加</button>
+            </div>
           </div>
         </div>
 
@@ -57,6 +76,38 @@
             </div>
             <div class="result-item" v-if="result.error">
               <strong>错误：</strong>{{ result.error }}
+            </div>
+            
+            <!-- 数据变更详情 -->
+            <div v-if="result.balanceChanges" class="balance-changes">
+              <h4>数据变更详情</h4>
+              <table class="balance-table">
+                <tr>
+                  <th>账户</th>
+                  <th>操作前余额</th>
+                  <th>操作后余额</th>
+                  <th>变更</th>
+                </tr>
+                <tr>
+                  <td>用户{{ result.balanceChanges.fromUserId }}（转出）</td>
+                  <td>{{ result.balanceChanges.fromBalanceBefore }}</td>
+                  <td>{{ result.balanceChanges.fromBalanceAfter }}</td>
+                  <td :class="getBalanceChangeClass(result.balanceChanges.fromBalanceBefore, result.balanceChanges.fromBalanceAfter)">
+                    {{ formatBalanceChange(result.balanceChanges.fromBalanceBefore, result.balanceChanges.fromBalanceAfter) }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>用户{{ result.balanceChanges.toUserId }}（转入）</td>
+                  <td>{{ result.balanceChanges.toBalanceBefore }}</td>
+                  <td>{{ result.balanceChanges.toBalanceAfter }}</td>
+                  <td :class="getBalanceChangeClass(result.balanceChanges.toBalanceBefore, result.balanceChanges.toBalanceAfter)">
+                    {{ formatBalanceChange(result.balanceChanges.toBalanceBefore, result.balanceChanges.toBalanceAfter) }}
+                  </td>
+                </tr>
+              </table>
+              <div v-if="result.balanceChanges.inconsistent" class="inconsistent-warning">
+                ⚠️ 数据不一致！转入账户余额未增加，但转出账户已扣款。
+              </div>
             </div>
           </div>
         </div>
@@ -109,9 +160,10 @@ export default {
   mixins: [exampleMixin],
   data() {
     return {
-      fromUserId: 1,
-      toUserId: 2,
+      fromUserId: 1001,
+      toUserId: 1002,
       amount: 100,
+      currentBalances: {},
       errorCode: `@Service
 public class TransferService {
     @Autowired
@@ -181,6 +233,58 @@ public class TransferService {
     };
   },
   methods: {
+    async resetAccounts() {
+      try {
+        this.clearResult();
+        this.log('重置账户余额...');
+        
+        const response = await api.examples.dataconsistency.resetAccounts();
+        this.result = response;
+        this.currentBalances = response.accounts || {};
+        this.log('账户余额已重置', response.status);
+      } catch (error) {
+        this.setErrorResult('重置失败', error.message);
+        this.log('重置失败: ' + error.message, 'error');
+      }
+    },
+    
+    async addBalance(userId) {
+      try {
+        this.clearResult();
+        this.log('为用户' + userId + '增加余额...');
+        
+        const response = await api.examples.dataconsistency.addBalance(userId, 1000);
+        this.result = response;
+        this.currentBalances = response.currentBalances || {};
+        this.log('余额增加成功', response.status);
+      } catch (error) {
+        this.setErrorResult('增加余额失败', error.message);
+        this.log('增加余额失败: ' + error.message, 'error');
+      }
+    },
+    
+    formatBalanceChange(before, after) {
+      if (before === undefined || after === undefined) return '-';
+      const change = Number(after) - Number(before);
+      if (change > 0) {
+        return '+' + change.toFixed(2);
+      } else if (change < 0) {
+        return change.toFixed(2);
+      }
+      return '0.00';
+    },
+    
+    getBalanceChangeClass(before, after) {
+      if (before === undefined || after === undefined) return '';
+      const change = Number(after) - Number(before);
+      if (change > 0) {
+        return 'balance-increase';
+      } else if (change < 0) {
+        return 'balance-decrease';
+      }
+      return '';
+    },
+    
     async transferWithoutTransaction() {
       try {
         this.clearResult();
@@ -205,6 +309,7 @@ public class TransferService {
           this.amount
         );
         this.result = response;
+        this.currentBalances = response.currentBalances || {};
         this.log('无事务转账完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -236,6 +341,7 @@ public class TransferService {
           this.amount
         );
         this.result = response;
+        this.currentBalances = response.currentBalances || {};
         this.log('有事务转账完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
@@ -259,5 +365,107 @@ public class TransferService {
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
+}
+
+.balance-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.balance-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.balance-display {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.balance-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.balance-label {
+  font-weight: bold;
+  color: #555;
+}
+
+.balance-value {
+  font-size: 18px;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.btn-small {
+  padding: 5px 10px;
+  font-size: 12px;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background-color: #138496;
+}
+
+.balance-changes {
+  margin-top: 15px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.balance-changes h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.balance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.balance-table th,
+.balance-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.balance-table th {
+  background-color: #f0f0f0;
+}
+
+.balance-increase {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.balance-decrease {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.inconsistent-warning {
+  padding: 10px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-weight: bold;
 }
 </style>
