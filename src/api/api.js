@@ -199,6 +199,77 @@ const api = {
           method: 'POST'
         }).then(handleResponse);
       }
+    },
+    
+    // 高级案例：分布式事务
+    distributedTransaction: {
+      simulateTwoPhaseCommit: (params) => {
+        return fetch(`${API_BASE_URL}/examples/distributed-transaction/two-phase-commit?fromAccountId=${params.fromAccountId}&toAccountId=${params.toAccountId}&amount=${params.amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      simulateTCCPattern: (params) => {
+        return fetch(`${API_BASE_URL}/examples/distributed-transaction/tcc?fromAccountId=${params.fromAccountId}&toAccountId=${params.toAccountId}&amount=${params.amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      simulateSagaPattern: (params) => {
+        return fetch(`${API_BASE_URL}/examples/distributed-transaction/saga?fromAccountId=${params.fromAccountId}&toAccountId=${params.toAccountId}&amount=${params.amount}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      reset: () => {
+        return fetch(`${API_BASE_URL}/examples/distributed-transaction/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      getAccounts: () => {
+        return fetch(`${API_BASE_URL}/examples/distributed-transaction/accounts`)
+          .then(handleResponse);
+      }
+    },
+    
+    // 高级案例：缓存一致性
+    cacheConsistency: {
+      simulateCachePenetration: (productId) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/penetration?productId=${productId}`)
+          .then(handleResponse);
+      },
+      simulateCacheBreakdown: (productId) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/breakdown?productId=${productId}`)
+          .then(handleResponse);
+      },
+      simulateCacheAvalanche: () => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/avalanche`)
+          .then(handleResponse);
+      },
+      simulateCacheConsistency: (productId, newPrice) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/consistency?productId=${productId}&newPrice=${newPrice}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      fixCachePenetration: (productId) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/fix-penetration?productId=${productId}`)
+          .then(handleResponse);
+      },
+      fixCacheBreakdown: (productId) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/fix-breakdown?productId=${productId}`)
+          .then(handleResponse);
+      },
+      fixCacheConsistency: (productId, newPrice) => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/fix-consistency?productId=${productId}&newPrice=${newPrice}`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      reset: () => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
+      },
+      getProducts: () => {
+        return fetch(`${API_BASE_URL}/examples/cache-consistency/products`)
+          .then(handleResponse);
+      }
     }
   }
 };

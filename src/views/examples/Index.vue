@@ -36,6 +36,20 @@
           <p>竞态条件与死锁问题</p>
           <div class="case-tag">并发控制</div>
         </div>
+        
+        <div class="case-card " @click="navigateTo('/examples/distributed-transaction')">
+          <div class="case-number">05</div>
+          <h3>分布式事务</h3>
+          <p>分布式环境下的数据一致性问题</p>
+          <div class="case-tag advanced-tag">高级案例</div>
+        </div>
+        
+        <div class="case-card " @click="navigateTo('/examples/cache-consistency')">
+          <div class="case-number">06</div>
+          <h3>缓存一致性</h3>
+          <p>缓存与数据库之间的数据一致性问题</p>
+          <div class="case-tag advanced-tag">高级案例</div>
+        </div>
       </div>
     </div>
   </Layout>
@@ -62,4 +76,22 @@ export default {
 
 <style scoped>
 /* 只保留组件特有的样式，通用样式已移至 common.css */
+
+/* 高级案例样式 */
+.case-card.advanced {
+  border: 2px solid #007bff;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.case-card.advanced:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 123, 255, 0.3);
+}
+
+.case-tag.advanced-tag {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}
 </style>

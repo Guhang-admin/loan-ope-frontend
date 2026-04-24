@@ -12,11 +12,15 @@ import TimeoutExample from '../views/examples/Timeout.vue'
 import DataConsistencyExample from '../views/examples/DataConsistency.vue'
 import MemoryLeakExample from '../views/examples/MemoryLeak.vue'
 import ConcurrencyExample from '../views/examples/Concurrency.vue'
+import DistributedTransactionExample from '../views/examples/DistributedTransaction.vue'
+import CacheConsistencyExample from '../views/examples/CacheConsistency.vue'
 import JSExamplesIndex from '../views/js-examples/Index.vue'
 import AsyncExample from '../views/js-examples/Async.vue'
 import MemoryLeakJSExample from '../views/js-examples/MemoryLeak.vue'
 import DomExample from '../views/js-examples/Dom.vue'
 import SecurityExample from '../views/js-examples/Security.vue'
+import PerformanceOptimizationExample from '../views/js-examples/PerformanceOptimization.vue'
+import StateManagementExample from '../views/js-examples/StateManagement.vue'
 
 Vue.use(Router)
 
@@ -95,6 +99,18 @@ const router = new Router({
       meta: { requiresAuth: true }
     },
     {
+      path: '/examples/distributed-transaction',
+      name: 'DistributedTransactionExample',
+      component: DistributedTransactionExample,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/examples/cache-consistency',
+      name: 'CacheConsistencyExample',
+      component: CacheConsistencyExample,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/js-examples',
       name: 'JSExamplesIndex',
       component: JSExamplesIndex,
@@ -122,6 +138,18 @@ const router = new Router({
       path: '/js-examples/security',
       name: 'SecurityExample',
       component: SecurityExample,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/js-examples/performance-optimization',
+      name: 'PerformanceOptimizationExample',
+      component: PerformanceOptimizationExample,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/js-examples/state-management',
+      name: 'StateManagementExample',
+      component: StateManagementExample,
       meta: { requiresAuth: true }
     }
   ]
