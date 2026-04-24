@@ -22,20 +22,40 @@
         <h2>演示</h2>
 
         <div class="demo-buttons">
-          <button @click="simulateMemoryLeak" :class="buttonTypes.danger.class">
+          <button 
+            @click="simulateMemoryLeak" 
+            :class="[buttonTypes.danger.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             模拟内存泄漏（单条）
           </button>
-          <button @click="simulateMemoryLeakBatch" :class="buttonTypes.danger.class">
+          <button 
+            @click="simulateMemoryLeakBatch" 
+            :class="[buttonTypes.danger.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             批量模拟内存泄漏
           </button>
-          <button @click="checkMemoryStatus" :class="buttonTypes.success.class">
+          <button 
+            @click="checkMemoryStatus" 
+            :class="[buttonTypes.success.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             检查内存状态
           </button>
-          <button @click="showNormalCase" :class="buttonTypes.primary.class">
+          <button 
+            @click="showNormalCase" 
+            :class="[buttonTypes.primary.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             展示正常情况
           </button>
-          <button @click="clearMemory" :class="buttonTypes.secondary.class">
-            清理内存
+          <button 
+            @click="clearMemory" 
+            :class="[buttonTypes.secondary.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
+            内存修复
           </button>
         </div>
 
@@ -43,7 +63,7 @@
           <h3>内存状态</h3>
           <div class="memory-usage">
             <div class="memory-bar-container">
-              <div class="memory-bar" :style="{ width: memoryUsagePercent + '%' }"></div>
+              <div class="memory-bar" :style="{ width: memoryUsagePercent + '%' }" :class="getMemoryBarClass()"></div>
             </div>
             <div class="memory-info">
               <span v-if="memoryInfo">{{ memoryInfo }}</span>
@@ -55,12 +75,24 @@
               <strong>缓存对象数量：</strong>
               <span>{{ cacheSize || 0 }}</span>
             </div>
+            <div class="cache-item">
+              <strong>内存状态：</strong>
+              <span :class="getMemoryStatusClass()">{{ getMemoryStatusText() }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="result-section" v-if="result">
+        <div class="result-section" v-if="result || isLoading">
           <h3>结果</h3>
-          <div class="result-card" :class="resultStatus[result.status].class">
+          <div class="result-card result-card-info" v-if="isLoading">
+            <div class="result-item">
+              <strong>状态：</strong>⏳ 处理中
+            </div>
+            <div class="result-item">
+              <strong>消息：</strong>正在处理，请稍候...
+            </div>
+          </div>
+          <div class="result-card" v-else :class="resultStatus[result.status].class">
             <div class="result-item">
               <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
@@ -72,6 +104,12 @@
             </div>
             <div class="result-item" v-if="result.objectCount">
               <strong>对象数量：</strong>{{ result.objectCount }}
+            </div>
+            <div class="result-item" v-if="result.warning">
+              <strong>警告：</strong>{{ result.warning }}
+            </div>
+            <div class="result-item" v-if="result.info">
+              <strong>提示：</strong>{{ result.info }}
             </div>
           </div>
         </div>
@@ -204,7 +242,8 @@ export default {
       },
       memoryUsagePercent: 0,
       memoryInfo: null,
-      cacheSize: 0
+      cacheSize: 0,
+      isLoading: false
     };
   },
   mounted() {
@@ -212,6 +251,36 @@ export default {
     this.checkMemoryStatus(false);
   },
   methods: {
+    getMemoryBarClass() {
+      if (this.memoryUsagePercent < 50) {
+        return 'memory-bar-normal';
+      } else if (this.memoryUsagePercent < 80) {
+        return 'memory-bar-warning';
+      } else {
+        return 'memory-bar-danger';
+      }
+    },
+
+    getMemoryStatusClass() {
+      if (this.memoryUsagePercent < 50) {
+        return 'status-normal';
+      } else if (this.memoryUsagePercent < 80) {
+        return 'status-warning';
+      } else {
+        return 'status-danger';
+      }
+    },
+
+    getMemoryStatusText() {
+      if (this.memoryUsagePercent < 50) {
+        return '正常';
+      } else if (this.memoryUsagePercent < 80) {
+        return '警告';
+      } else {
+        return '危险';
+      }
+    },
+
     updateMemoryStatus(response) {
       if (response.memoryUsage) {
         this.memoryInfo = response.memoryUsage;
@@ -228,6 +297,7 @@ export default {
 
     async simulateMemoryLeak() {
       try {
+        this.isLoading = true;
         this.clearResult();
         this.log('开始模拟内存泄漏...');
         // 生成随机ID和数据
@@ -240,11 +310,14 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     },
 
     async simulateMemoryLeakBatch() {
       try {
+        this.isLoading = true;
         this.clearResult();
         this.log('开始批量模拟内存泄漏...');
         // 批量添加100条数据，加速内存泄漏
@@ -255,11 +328,14 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     },
 
     async checkMemoryStatus(showResult = true) {
       try {
+        this.isLoading = true;
         if (showResult) {
           this.clearResult();
           this.log('开始检查内存状态...');
@@ -273,25 +349,31 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     },
 
     async clearMemory() {
       try {
+        this.isLoading = true;
         this.clearResult();
-        this.log('开始清理内存...');
+        this.log('开始内存修复...');
         const response = await api.examples.memoryleak.clearCache();
         this.result = response;
         this.updateMemoryStatus(response);
-        this.log('内存清理完成', response.status);
+        this.log('内存修复完成', response.status);
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     },
 
     async showNormalCase() {
       try {
+        this.isLoading = true;
         this.clearResult();
         this.log('展示正常情况...');
         // 先清理内存
@@ -304,6 +386,8 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     }
   }
@@ -346,9 +430,20 @@ export default {
 
 .memory-bar {
   height: 100%;
-  background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
   border-radius: 10px;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.memory-bar-normal {
+  background: linear-gradient(90deg, #28a745, #28a745);
+}
+
+.memory-bar-warning {
+  background: linear-gradient(90deg, #ffc107, #ffc107);
+}
+
+.memory-bar-danger {
+  background: linear-gradient(90deg, #dc3545, #dc3545);
 }
 
 .memory-info {
@@ -371,6 +466,21 @@ export default {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+.status-normal {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-warning {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.status-danger {
+  color: #dc3545;
+  font-weight: bold;
+}
+
 .demo-buttons {
   display: flex;
   gap: 10px;
@@ -391,6 +501,22 @@ export default {
 .demo-buttons button:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.demo-buttons button.disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.result-card-info {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  color: #1976d2;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
 }
 
 /* 响应式调整 */

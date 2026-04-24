@@ -112,6 +112,11 @@ const api = {
       fixedLeak: () => {
         return fetch(`${API_BASE_URL}/examples/timeout/fixed`)
           .then(handleResponse);
+      },
+      reset: () => {
+        return fetch(`${API_BASE_URL}/examples/timeout/reset`, {
+          method: 'POST'
+        }).then(handleResponse);
       }
     },
     

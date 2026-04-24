@@ -22,17 +22,40 @@
         <h2>演示</h2>
 
         <div class="demo-controls">
-          <button @click="simulateConnectionLeak" :class="buttonTypes.danger.class">
+          <button 
+            @click="simulateConnectionLeak" 
+            :class="[buttonTypes.danger.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             模拟连接泄漏
           </button>
-          <button @click="fixedConnectionLeak" :class="buttonTypes.success.class">
+          <button 
+            @click="fixedConnectionLeak" 
+            :class="[buttonTypes.success.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
             正确关闭连接
+          </button>
+          <button 
+            @click="resetConnectionCount" 
+            :class="[buttonTypes.secondary.class, { 'disabled': isLoading }]"
+            :disabled="isLoading"
+          >
+            连接泄漏恢复
           </button>
         </div>
 
-        <div class="result-section" v-if="result">
+        <div class="result-section" v-if="result || isLoading">
           <h3>结果</h3>
-          <div class="result-card" :class="resultStatus[result.status].class">
+          <div class="result-card result-card-info" v-if="isLoading">
+            <div class="result-item">
+              <strong>状态：</strong>⏳ 处理中
+            </div>
+            <div class="result-item">
+              <strong>消息：</strong>正在处理，请稍候...
+            </div>
+          </div>
+          <div class="result-card" v-else :class="resultStatus[result.status].class">
             <div class="result-item">
               <strong>状态：</strong>{{ resultStatus[result.status].icon }} {{ resultStatus[result.status].label }}
             </div>
@@ -47,6 +70,22 @@
             </div>
             <div class="result-item" v-if="result.info">
               <strong>提示：</strong>{{ result.info }}
+            </div>
+            <div class="result-item" v-if="result.details">
+              <strong>详情：</strong>{{ result.details }}
+            </div>
+            <div class="result-item" v-if="result.error">
+              <strong>错误：</strong>{{ result.error }}
+            </div>
+            <div class="user-info" v-if="result.user">
+              <strong>查询结果：</strong>
+              <div class="user-details">
+                <div>用户ID：{{ result.user.id }}</div>
+                <div>用户名：{{ result.user.username }}</div>
+                <div>姓名：{{ result.user.name }}</div>
+                <div>角色：{{ result.user.role }}</div>
+                <div>信用分：{{ result.user.creditScore }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -142,12 +181,14 @@ export default {
       tabConfigs: {
         error: exampleStyles.tabs.error,
         fixed: exampleStyles.tabs.fixed
-      }
+      },
+      isLoading: false
     };
   },
   methods: {
     async simulateConnectionLeak() {
       try {
+        this.isLoading = true;
         this.clearResult();
         this.log('开始模拟连接泄漏...');
         const response = await api.examples.timeout.simulateLeak();
@@ -156,11 +197,14 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     },
 
     async fixedConnectionLeak() {
       try {
+        this.isLoading = true;
         this.clearResult();
         this.log('开始正确关闭连接...');
         const response = await api.examples.timeout.fixedLeak();
@@ -169,6 +213,24 @@ export default {
       } catch (error) {
         this.setErrorResult('操作失败', error.message);
         this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async resetConnectionCount() {
+      try {
+        this.isLoading = true;
+        this.clearResult();
+        this.log('开始连接泄漏恢复...');
+        const response = await api.examples.timeout.reset();
+        this.result = response;
+        this.log('连接泄漏恢复完成', response.status);
+      } catch (error) {
+        this.setErrorResult('操作失败', error.message);
+        this.log('操作失败: ' + error.message, 'error');
+      } finally {
+        this.isLoading = false;
       }
     }
   }
@@ -181,5 +243,41 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.demo-controls button.disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.result-card-info {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  color: #1976d2;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.user-info {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.user-details {
+  margin-left: 20px;
+  margin-top: 5px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.user-details div {
+  font-size: 14px;
+  color: #333;
 }
 </style>
