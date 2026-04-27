@@ -157,6 +157,7 @@ export const exampleStyles = {
   buttonTypes: {
     danger: { class: 'btn btn-danger', label: '错误示例' },
     success: { class: 'btn btn-success', label: '正确示例' },
+    warning: { class: 'btn btn-warning', label: '警告示例' },
     secondary: { class: 'btn btn-secondary', label: '辅助操作' },
     default: { class: 'btn btn-default', label: '默认操作' },
     primary: { class: 'btn btn-primary', label: '主要操作' }
